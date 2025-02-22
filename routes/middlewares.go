@@ -7,36 +7,40 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/Falokut/go-kit/jwt"
+	"github.com/pkg/errors"
 
 	http2 "github.com/Falokut/go-kit/http"
 	"github.com/Falokut/go-kit/http/apierrors"
 	"github.com/Falokut/go-kit/http/types"
 )
 
-type AuthMiddleware struct {
-	accessTokenSecret string
+type AuthRepo interface {
+	GetUserSession(ctx context.Context, sessionId string) (entity.UserSession, error)
 }
 
-func NewAuthMiddleware(accessTokenSecret string) AuthMiddleware {
+type AuthMiddleware struct {
+	authRepo AuthRepo
+}
+
+func NewAuthMiddleware(authRepo AuthRepo) AuthMiddleware {
 	return AuthMiddleware{
-		accessTokenSecret: accessTokenSecret,
+		authRepo: authRepo,
 	}
 }
 
 func (m AuthMiddleware) AdminAuthToken() http2.Middleware {
-	return AuthToken(m.accessTokenSecret, domain.AdminType)
+	return m.AuthToken(domain.AdminType)
 }
 
 func (m AuthMiddleware) UserAuthToken() http2.Middleware {
-	return AuthToken(m.accessTokenSecret, domain.StudentType, domain.AdminType)
+	return m.AuthToken(domain.StudentType, domain.AdminType)
 }
 
 func (m AuthMiddleware) TeacherAuthToken() http2.Middleware {
-	return AuthToken(m.accessTokenSecret, domain.LectorType, domain.AdminType)
+	return m.AuthToken(domain.LectorType, domain.AdminType)
 }
 
-func AuthToken(tokenSecret string, roles ...string) http2.Middleware {
+func (m AuthMiddleware) AuthToken(tokenSecret string, roles ...string) http2.Middleware {
 	return func(next http2.HandlerFunc) http2.HandlerFunc {
 		return func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 			token := types.BearerToken{}
@@ -44,18 +48,20 @@ func AuthToken(tokenSecret string, roles ...string) http2.Middleware {
 			if err != nil {
 				return err
 			}
-
-			userInfo := entity.TokenUserInfo{}
-			err = jwt.ParseToken(token.Token, tokenSecret, &userInfo)
-			if err != nil {
-				return err
+			userSession, err := m.authRepo.GetUserSession(ctx, token.Token)
+			switch {
+			case errors.Is(err, domain.ErrSessionNotFound):
+				return apierrors.NewForbiddenError("forbidden")
+			case err != nil:
+				return errors.WithMessage(err, "get user session")
 			}
-			domain.UserIdToContext(ctx, userInfo.UserId)
+
+			domain.UserIdToContext(ctx, userSession.UserId)
 			if len(roles) == 0 {
 				return next(ctx, w, r)
 			}
-			if !slices.Contains(roles, userInfo.RoleName) {
-				return apierrors.NewForbiddenError("access forbidden")
+			if !slices.Contains(roles, userSession.RoleName) {
+				return apierrors.NewForbiddenError("forbidden")
 			}
 			return next(ctx, w, r)
 		}

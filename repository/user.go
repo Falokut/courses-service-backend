@@ -12,12 +12,12 @@ import (
 )
 
 type User struct {
-	cli *db.Client
+	db db.DB
 }
 
-func NewUser(cli *db.Client) User {
+func NewUser(db db.DB) User {
 	return User{
-		cli: cli,
+		db: db,
 	}
 }
 
@@ -27,7 +27,7 @@ func (r User) Register(ctx context.Context, user entity.RegisterUser) error {
 	VALUES($1, $2, $3, $4)
 	ON CONFLICT DO NOTHING RETURNING id;`
 	var userId int64
-	err := r.cli.GetContext(ctx, &userId, query, user.Username, user.Fio, user.PasswordHash, user.RoleId)
+	err := r.db.SelectRow(ctx, &userId, query, user.Username, user.Fio, user.PasswordHash, user.RoleId)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		return domain.ErrUserAlreadyExists
@@ -44,7 +44,7 @@ func (r User) GetUserByUsername(ctx context.Context, username string) (entity.Us
 	JOIN roles r ON u.role_id = r.id 
 	WHERE username=$1;`
 	var user entity.User
-	err := r.cli.GetContext(ctx, &user, query, username)
+	err := r.db.SelectRow(ctx, &user, query, username)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		return entity.User{}, domain.ErrUserNotFound
@@ -57,7 +57,7 @@ func (r User) GetUserByUsername(ctx context.Context, username string) (entity.Us
 func (r User) GetUsers(ctx context.Context, limit int32, offset int32) ([]entity.User, error) {
 	query := "SELECT id, username, fio, role_id FROM users LIMIT $1 OFFSET $2"
 	var res []entity.User
-	err := r.cli.SelectContext(ctx, &res, query, limit, offset)
+	err := r.db.Select(ctx, &res, query, limit, offset)
 	if err != nil {
 		return nil, errors.WithMessagef(err, "exec query: %s", query)
 	}

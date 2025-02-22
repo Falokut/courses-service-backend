@@ -2,8 +2,6 @@
 package conf
 
 import (
-	"time"
-
 	"github.com/Falokut/go-kit/config"
 )
 
@@ -21,12 +19,5 @@ type Images struct {
 }
 
 type Auth struct {
-	Access     JwtToken `yaml:"access"`
-	Refresh    JwtToken `yaml:"refresh"`
-	BcryptCost int      `yaml:"bcrypt_cost" validate:"min=3,max=31"`
-}
-
-type JwtToken struct {
-	TTL    time.Duration `yaml:"ttl" validate:"required,min=24h"`
-	Secret string        `yaml:"secret" validate:"required,min=10"`
+	BcryptCost int `yaml:"bcrypt_cost" validate:"min=3,max=31"`
 }

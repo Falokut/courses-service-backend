@@ -8,6 +8,7 @@ import (
 	"courses-service/repository"
 	"courses-service/routes"
 	"courses-service/service"
+	"courses-service/transaction"
 
 	"github.com/Falokut/go-kit/client/db"
 	"github.com/Falokut/go-kit/http/client"
@@ -28,14 +29,21 @@ func Locator(
 	imagesCli *client.Client,
 	cfg conf.LocalConfig,
 ) (Config, error) {
-	userRepo := repository.NewUser(dbCli)
-	authService := service.NewAuth(cfg.Auth, userRepo)
-	authCtrl := controller.NewAuth(authService)
+	txRunner := transaction.NewManager(dbCli)
 
+	userRepo := repository.NewUser(dbCli)
+	authRepo := repository.NewAuth(dbCli)
+
+	authService := service.NewAuth(cfg.Auth, userRepo, txRunner)
+	auth := controller.NewAuth(authService)
+
+	userService := service.NewUser(authRepo)
+	user := controller.NewUser(userService)
 	hrouter := routes.Router{
-		Auth: authCtrl,
+		Auth: auth,
+		User: user,
 	}
-	authMiddleware := routes.NewAuthMiddleware(cfg.Auth.Access.Secret)
+	authMiddleware := routes.NewAuthMiddleware(authRepo)
 	return Config{
 		HttpRouter: hrouter.InitRoutes(authMiddleware, endpoint.DefaultWrapper(logger)),
 	}, nil

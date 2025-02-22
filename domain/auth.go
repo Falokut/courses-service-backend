@@ -3,8 +3,6 @@ package domain
 import (
 	"context"
 	"strconv"
-
-	"github.com/Falokut/go-kit/jwt"
 )
 
 type userIdKey struct{}
@@ -33,8 +31,7 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	AccessToken  jwt.TokenResponse
-	RefreshToken jwt.TokenResponse
+	SessionId string
 }
 
 type RegisterRequest struct {
@@ -42,8 +39,4 @@ type RegisterRequest struct {
 	Fio      string `validate:"min=6,max=60"`
 	Password string `validate:"min=6,max=20"`
 	RoleId   int32  `validate:"required"`
-}
-
-type GetRoleResponse struct {
-	RoleName string
 }

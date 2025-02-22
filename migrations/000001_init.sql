@@ -16,9 +16,16 @@ CREATE TABLE users (
     role_id INT NOT NULL DEFAULT 0 REFERENCES roles (id) ON UPDATE CASCADE ON DELETE SET DEFAULT
 );
 
+CREATE TABLE sessions (
+    id UUID PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE courses (
     id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE
+    author_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    name TEXT NOT NULL
 );
 
 INSERT INTO courses (id, name) VALUES (0, 'DELETED');
@@ -40,20 +47,14 @@ CREATE TABLE lesson_attachments (
 
 CREATE TABLE courses_registration (
     elective_id INT NOT NULL DEFAULT 0 REFERENCES courses (id) ON UPDATE CASCADE ON DELETE SET DEFAULT,
-    teacher_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    PRIMARY KEY (elective_id, teacher_id)
-);
-
-CREATE TABLE teachers_courses (
-    elective_id INT NOT NULL DEFAULT 0 REFERENCES courses (id) ON UPDATE CASCADE ON DELETE SET DEFAULT,
-    teacher_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    PRIMARY KEY (elective_id, teacher_id)
+    student_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    PRIMARY KEY (elective_id, lector_id)
 );
 
 CREATE TABLE assignments (
     id SERIAL PRIMARY KEY,
     elective_id INT NOT NULL DEFAULT 0 REFERENCES courses (id) ON UPDATE CASCADE ON DELETE SET DEFAULT,
-    teacher_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    lector_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     assignment_text TEXT,
     assignment_at DATE
 );
@@ -75,13 +76,13 @@ DROP TABLE submitted_assignments;
 
 DROP TABLE assignments;
 
-DROP TABLE teachers_courses;
-
 DROP TABLE lesson_attachments;
 
 DROP TABLE elective_lessons;
 
 DROP TABLE courses;
+
+DROP TABLE sessions;
 
 DROP TABLE users;
 

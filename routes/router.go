@@ -11,6 +11,7 @@ import (
 
 type Router struct {
 	Auth controller.Auth
+	User controller.User
 }
 
 func (r Router) InitRoutes(authMiddleware AuthMiddleware, wrapper endpoint.Wrapper) *router.Router {
@@ -20,7 +21,7 @@ func (r Router) InitRoutes(authMiddleware AuthMiddleware, wrapper endpoint.Wrapp
 		switch {
 		case desc.IsAdmin:
 			endpointWrapper = wrapper.WithMiddlewares(authMiddleware.AdminAuthToken())
-		case desc.IsTeacher:
+		case desc.IsLector:
 			endpointWrapper = wrapper.WithMiddlewares(authMiddleware.TeacherAuthToken())
 		case desc.NeedUserAuth:
 			endpointWrapper = wrapper.WithMiddlewares(authMiddleware.UserAuthToken())
@@ -35,7 +36,7 @@ type EndpointDescriptor struct {
 	Method       string
 	Path         string
 	IsAdmin      bool
-	IsTeacher    bool
+	IsLector     bool
 	NeedUserAuth bool
 	Handler      any
 }
@@ -52,12 +53,8 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			Handler: r.Auth.Register,
 		}, {
 			Method:  http.MethodGet,
-			Path:    "/auth/refresh_access_token",
-			Handler: r.Auth.RefreshAccessToken,
-		}, {
-			Method:  http.MethodGet,
-			Path:    "/auth/get_user_role",
-			Handler: r.Auth.GetRole,
+			Path:    "/user/get_role",
+			Handler: r.User.GetRole,
 		},
 	}
 }
