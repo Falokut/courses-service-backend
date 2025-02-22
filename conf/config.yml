@@ -1,0 +1,14 @@
+log:
+  level: debug
+  console_output: true
+listen:
+  port: 9999
+
+images:
+  base_service_url: https://falokut.ru/api/images-storage-service/
+  base_image_path: https://falokut.ru/file
+db:
+  schema: courses_service
+  host: localhost
+  port: 5432
+  database: postgres
