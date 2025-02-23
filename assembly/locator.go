@@ -15,6 +15,7 @@ import (
 	"github.com/Falokut/go-kit/http/endpoint"
 	"github.com/Falokut/go-kit/http/router"
 	"github.com/Falokut/go-kit/log"
+	"github.com/Falokut/go-kit/validator"
 )
 
 type Config struct {
@@ -39,12 +40,13 @@ func Locator(
 
 	userService := service.NewUser(authRepo)
 	user := controller.NewUser(userService)
-	hrouter := routes.Router{
+	router := routes.Router{
 		Auth: auth,
 		User: user,
 	}
 	authMiddleware := routes.NewAuthMiddleware(authRepo)
+	validator := validator.New(validator.Ru)
 	return Config{
-		HttpRouter: hrouter.InitRoutes(authMiddleware, endpoint.DefaultWrapper(logger)),
+		HttpRouter: router.InitRoutes(authMiddleware, endpoint.DefaultWrapper(logger).WithValidator(validator)),
 	}, nil
 }
