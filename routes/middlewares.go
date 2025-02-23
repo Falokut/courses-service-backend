@@ -67,3 +67,19 @@ func (m AuthMiddleware) AuthToken(tokenSecret string, roles ...string) http2.Mid
 		}
 	}
 }
+
+type DisableCors struct{}
+
+func (c DisableCors) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Credentials", "*")
+	w.Header().Add("Access-Control-Allow-Headers", "*")
+	w.Header().Add("Access-Control-Allow-Methods", "*")
+}
+
+func (c DisableCors) Middleware(next http2.HandlerFunc) http2.HandlerFunc {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+		c.ServeHTTP(w, r)
+		return next(ctx, w, r)
+	}
+}

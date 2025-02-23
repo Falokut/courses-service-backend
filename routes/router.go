@@ -16,8 +16,11 @@ type Router struct {
 
 func (r Router) InitRoutes(authMiddleware AuthMiddleware, wrapper endpoint.Wrapper) *router.Router {
 	mux := router.New()
+	disableCors := DisableCors{}
+	mux.InternalRouter().GlobalOPTIONS = disableCors
+
 	for _, desc := range endpointDescriptors(r) {
-		endpointWrapper := wrapper
+		endpointWrapper := wrapper.WithMiddlewares(disableCors.Middleware)
 		switch {
 		case desc.IsAdmin:
 			endpointWrapper = wrapper.WithMiddlewares(authMiddleware.AdminAuthToken())
