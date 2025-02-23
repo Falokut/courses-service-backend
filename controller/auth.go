@@ -41,7 +41,7 @@ func (c Auth) Login(ctx context.Context, req domain.LoginRequest) (*domain.Login
 	tokens, err := c.service.Login(ctx, req)
 	switch {
 	case errors.Is(err, domain.ErrUserNotFound), errors.Is(err, domain.ErrInvalidCredentials):
-		return nil, apierrors.NewForbiddenError("invalid credentials")
+		return nil, apierrors.NewForbiddenError(domain.ErrInvalidCredentials.Error())
 	default:
 		return tokens, err
 	}
