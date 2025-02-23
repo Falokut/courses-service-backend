@@ -25,35 +25,34 @@ CREATE TABLE sessions (
 CREATE TABLE courses (
     id SERIAL PRIMARY KEY,
     author_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    preview_picture_url TEXT DEFAULT ''
 );
 
-INSERT INTO courses (id, name) VALUES (0, 'DELETED');
-
-CREATE TABLE elective_lessons (
+CREATE TABLE course_lessons (
     id SERIAL PRIMARY KEY,
-    elective_id INT NOT NULL DEFAULT 0 REFERENCES courses (id) ON UPDATE CASCADE ON DELETE SET DEFAULT,
+    course_id INT NOT NULL REFERENCES courses (id) ON UPDATE CASCADE ON DELETE CASCADE,
     title TEXT NOT NULL,
     created_at TIMESTAMPTZ,
-    description TEXT,
-    video_url TEXT NOT NULL
+    description TEXT
 );
 
 CREATE TABLE lesson_attachments (
     id SERIAL PRIMARY KEY,
-    lesson_id INT NOT NULL DEFAULT 0 REFERENCES elective_lessons (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    metadata JSON DEFAULT '{}'
+    attachment_type TEXT NOT NULL,
+    lesson_id INT NOT NULL REFERENCES course_lessons (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    url TEXT NOT NULL
 );
 
 CREATE TABLE courses_registration (
-    elective_id INT NOT NULL DEFAULT 0 REFERENCES courses (id) ON UPDATE CASCADE ON DELETE SET DEFAULT,
-    student_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    PRIMARY KEY (elective_id, lector_id)
+    course_id INT NOT NULL REFERENCES courses (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    PRIMARY KEY (course_id, user_id)
 );
 
 CREATE TABLE assignments (
     id SERIAL PRIMARY KEY,
-    elective_id INT NOT NULL DEFAULT 0 REFERENCES courses (id) ON UPDATE CASCADE ON DELETE SET DEFAULT,
+    course_id INT NOT NULL REFERENCES courses (id) ON UPDATE CASCADE ON DELETE CASCADE,
     lector_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     assignment_text TEXT,
     assignment_at DATE
@@ -78,7 +77,7 @@ DROP TABLE assignments;
 
 DROP TABLE lesson_attachments;
 
-DROP TABLE elective_lessons;
+DROP TABLE course_lessons;
 
 DROP TABLE courses;
 
