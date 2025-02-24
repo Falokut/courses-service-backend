@@ -7,9 +7,8 @@ on:
       - main
 
 jobs:
-  workflow:
+  code-quality-check:
     runs-on: ubuntu-latest
-    environment: Default
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,10 +27,25 @@ jobs:
       - name: Go test
         run: go test -v ./...
 
+  version-tag:
+    runs-on: ubuntu-latest
+    needs: code-quality-check
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Push version tag
         uses: falokut/version-tag-action@v1
         with:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker-image:
+    runs-on: ubuntu-latest
+    environment: Default
+    needs: code-quality-check
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Push Docker Image
         uses: falokut/docker-image-action@v1
