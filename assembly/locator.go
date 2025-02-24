@@ -38,7 +38,6 @@ func Locator(
 	roleRepo := repository.NewRole(dbCli)
 
 	authService := service.NewAuth(cfg.Auth, userRepo, roleRepo, txRunner)
-
 	if cfg.Auth.InitAdmin != nil {
 		err := authService.InitAdmin(ctx, *cfg.Auth.InitAdmin)
 		if err != nil {
@@ -49,9 +48,13 @@ func Locator(
 
 	userService := service.NewUser(authRepo)
 	user := controller.NewUser(userService)
+
+	roleService := service.NewRole(roleRepo)
+	role := controller.NewRole(roleService)
 	router := routes.Router{
 		Auth: auth,
 		User: user,
+		Role: role,
 	}
 	authMiddleware := routes.NewAuthMiddleware(authRepo)
 	validator := validator.New(validator.Ru)

@@ -18,10 +18,6 @@ type UserRepo interface {
 	UpsertUser(ctx context.Context, req entity.UpsertUser) error
 }
 
-type RoleRepo interface {
-	GetRoleId(ctx context.Context, roleName string) (int32, error)
-}
-
 type AuthTxRunner interface {
 	LoginTransaction(ctx context.Context, txFunc func(ctx context.Context, tx LoginTx) error) error
 }
