@@ -16,6 +16,7 @@ import (
 	"github.com/Falokut/go-kit/http/router"
 	"github.com/Falokut/go-kit/log"
 	"github.com/Falokut/go-kit/validator"
+	"github.com/pkg/errors"
 )
 
 type Config struct {
@@ -34,8 +35,16 @@ func Locator(
 
 	userRepo := repository.NewUser(dbCli)
 	authRepo := repository.NewAuth(dbCli)
+	roleRepo := repository.NewRole(dbCli)
 
-	authService := service.NewAuth(cfg.Auth, userRepo, txRunner)
+	authService := service.NewAuth(cfg.Auth, userRepo, roleRepo, txRunner)
+
+	if cfg.Auth.InitAdmin != nil {
+		err := authService.InitAdmin(ctx, *cfg.Auth.InitAdmin)
+		if err != nil {
+			return Config{}, errors.WithMessage(err, "init admin")
+		}
+	}
 	auth := controller.NewAuth(authService)
 
 	userService := service.NewUser(authRepo)

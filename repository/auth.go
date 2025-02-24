@@ -23,11 +23,11 @@ func NewAuth(db db.DB) Auth {
 }
 
 func (r Auth) GetUserSession(ctx context.Context, sessionId string) (entity.UserSession, error) {
-	const query = `SELECT s.id, s.user_id, s.created_at, r.name
-	FROM session s
+	const query = `SELECT s.id, s.user_id, s.created_at, r.name AS role_name
+	FROM sessions s
 	JOIN users u ON s.user_id = u.id
 	JOIN roles r ON u.role_id = r.id
-	WHERE s.id=$1;`
+	WHERE s.id=$1::TEXT;`
 	var userSession entity.UserSession
 	err := r.db.SelectRow(ctx, &userSession, query, sessionId)
 	switch {

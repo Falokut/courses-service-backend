@@ -15,3 +15,10 @@ type RegisterUser struct {
 	PasswordHash string
 	RoleId       int32
 }
+
+type UpsertUser struct {
+	Fio          string
+	Username     string
+	PasswordHash string
+	RoleId       int32
+}

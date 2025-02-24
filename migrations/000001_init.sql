@@ -19,7 +19,7 @@ CREATE TABLE users (
 INSERT INTO users(id,username,fio, password) VALUES(0,'DELETED','DELETED','');
 
 CREATE TABLE sessions (
-    id UUID PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

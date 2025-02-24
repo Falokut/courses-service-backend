@@ -19,5 +19,11 @@ type Images struct {
 }
 
 type Auth struct {
-	BcryptCost int `yaml:"bcrypt_cost" validate:"min=3,max=31"`
+	BcryptCost int        `yaml:"bcrypt_cost" validate:"min=3,max=31"`
+	InitAdmin  *InitAdmin `yaml:"init_admin"`
+}
+
+type InitAdmin struct {
+	Username string `yaml:"username" validate:"min=3,max=40"`
+	Password string `yaml:"password" validate:"min=3,max=40"`
 }

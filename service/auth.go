@@ -15,6 +15,11 @@ import (
 
 type UserRepo interface {
 	Register(ctx context.Context, req entity.RegisterUser) error
+	UpsertUser(ctx context.Context, req entity.UpsertUser) error
+}
+
+type RoleRepo interface {
+	GetRoleId(ctx context.Context, roleName string) (int32, error)
 }
 
 type AuthTxRunner interface {
@@ -29,13 +34,15 @@ type LoginTx interface {
 type Auth struct {
 	cfg      conf.Auth
 	userRepo UserRepo
+	roleRepo RoleRepo
 	txRunner AuthTxRunner
 }
 
-func NewAuth(cfg conf.Auth, userRepo UserRepo, txRunner AuthTxRunner) Auth {
+func NewAuth(cfg conf.Auth, userRepo UserRepo, roleRepo RoleRepo, txRunner AuthTxRunner) Auth {
 	return Auth{
 		cfg:      cfg,
 		userRepo: userRepo,
+		roleRepo: roleRepo,
 		txRunner: txRunner,
 	}
 }
@@ -82,6 +89,28 @@ func (s Auth) login(ctx context.Context, req domain.LoginRequest, tx LoginTx) (s
 		return "", errors.WithMessage(err, "insert session")
 	}
 	return session.Id, nil
+}
+
+func (s Auth) InitAdmin(ctx context.Context, adminAuthData conf.InitAdmin) error {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(adminAuthData.Password), s.cfg.BcryptCost)
+	if err != nil {
+		return errors.WithMessage(err, "generate from passport")
+	}
+
+	adminRoleId, err := s.roleRepo.GetRoleId(ctx, domain.AdminType)
+	if err != nil {
+		return errors.WithMessage(err, "get admin role id")
+	}
+	err = s.userRepo.UpsertUser(ctx, entity.UpsertUser{
+		Fio:          "ADMIN ADMIN",
+		Username:     adminAuthData.Username,
+		PasswordHash: string(passwordHash),
+		RoleId:       adminRoleId,
+	})
+	if err != nil {
+		return errors.WithMessage(err, "upsert user")
+	}
+	return nil
 }
 
 func (s Auth) Register(ctx context.Context, req domain.RegisterRequest) error {

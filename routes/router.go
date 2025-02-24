@@ -3,6 +3,7 @@ package routes
 
 import (
 	"courses-service/controller"
+	"courses-service/domain"
 	"net/http"
 
 	"github.com/Falokut/go-kit/http/endpoint"
@@ -18,16 +19,10 @@ func (r Router) InitRoutes(authMiddleware AuthMiddleware, wrapper endpoint.Wrapp
 	mux := router.New()
 	disableCors := DisableCors{}
 	mux.InternalRouter().GlobalOPTIONS = disableCors
-
 	for _, desc := range endpointDescriptors(r) {
 		endpointWrapper := wrapper.WithMiddlewares(disableCors.Middleware)
-		switch {
-		case desc.IsAdmin:
-			endpointWrapper = wrapper.WithMiddlewares(authMiddleware.AdminAuthToken())
-		case desc.IsLector:
-			endpointWrapper = wrapper.WithMiddlewares(authMiddleware.TeacherAuthToken())
-		case desc.NeedUserAuth:
-			endpointWrapper = wrapper.WithMiddlewares(authMiddleware.UserAuthToken())
+		if len(desc.AllowedRoles) > 0 {
+			endpointWrapper = endpointWrapper.WithMiddlewares(authMiddleware.AuthRole(desc.AllowedRoles...))
 		}
 		mux.Handler(desc.Method, desc.Path, endpointWrapper.Endpoint(desc.Handler))
 	}
@@ -38,9 +33,7 @@ func (r Router) InitRoutes(authMiddleware AuthMiddleware, wrapper endpoint.Wrapp
 type EndpointDescriptor struct {
 	Method       string
 	Path         string
-	IsAdmin      bool
-	IsLector     bool
-	NeedUserAuth bool
+	AllowedRoles []string
 	Handler      any
 }
 
@@ -51,9 +44,10 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			Path:    "/auth/login",
 			Handler: r.Auth.Login,
 		}, {
-			Method:  http.MethodPost,
-			Path:    "/auth/register",
-			Handler: r.Auth.Register,
+			Method:       http.MethodPost,
+			Path:         "/auth/register",
+			Handler:      r.Auth.Register,
+			AllowedRoles: []string{domain.AdminType},
 		}, {
 			Method:  http.MethodGet,
 			Path:    "/user/get_role",

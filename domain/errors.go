@@ -12,6 +12,7 @@ var (
 	ErrUserOperationForbidden = errors.New("данная операция запрещена для пользователя")
 	ErrWrongSecret            = errors.New("неверный пароль")
 	ErrForbidden              = errors.New("доступ запрещён")
+	ErrInvalidAuthData        = errors.New("невалидные данные для авторизации")
 )
 
 const (
