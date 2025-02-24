@@ -12,9 +12,11 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     fio TEXT NOT NULL,
-    PASSWORD TEXT NOT NULL,
+    password TEXT NOT NULL,
     role_id INT NOT NULL DEFAULT 0 REFERENCES roles (id) ON UPDATE CASCADE ON DELETE SET DEFAULT
 );
+
+INSERT INTO users(id,username,fio, password) VALUES(0,'DELETED','DELETED','');
 
 CREATE TABLE sessions (
     id UUID PRIMARY KEY,
@@ -22,12 +24,15 @@ CREATE TABLE sessions (
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+
 CREATE TABLE courses (
     id SERIAL PRIMARY KEY,
     author_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     name TEXT NOT NULL,
     preview_picture_url TEXT DEFAULT ''
 );
+
+INSERT INTO courses(id,author_id,name) VALUES(0,0,'DELETED');
 
 CREATE TABLE course_lessons (
     id SERIAL PRIMARY KEY,
@@ -37,10 +42,13 @@ CREATE TABLE course_lessons (
     description TEXT
 );
 
+INSERT INTO course_lessons(id, course_id, title) VALUES(0, 0, 'DELETED');
+
 CREATE TABLE lesson_attachments (
     id SERIAL PRIMARY KEY,
     attachment_type TEXT NOT NULL,
-    lesson_id INT NOT NULL REFERENCES course_lessons (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    lesson_id INT NOT NULL DEFAULT 0 REFERENCES course_lessons (id) ON UPDATE CASCADE ON DELETE SET DEFAULT,
+    pretty_name TEXT,
     url TEXT NOT NULL
 );
 
@@ -55,7 +63,7 @@ CREATE TABLE assignments (
     course_id INT NOT NULL REFERENCES courses (id) ON UPDATE CASCADE ON DELETE CASCADE,
     lector_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     assignment_text TEXT,
-    assignment_at DATE
+    created_at DATE
 );
 
 CREATE TABLE submitted_assignments (

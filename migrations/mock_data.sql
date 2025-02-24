@@ -34,7 +34,7 @@ INSERT INTO course_lessons (course_id, title, created_at, description) VALUES
     (9, 'Визуальный дизайн', NOW(), 'Основные принципы композиции'),
     (10, 'Управление проектами', NOW(), 'Методы и практики управления');
 
-INSERT INTO assignments (course_id, teacher_id, assignment_text, assignment_at) VALUES
+INSERT INTO assignments (course_id, lector_id, assignment_text, created_at) VALUES
     (1, 3, 'Сделать калькулятор на Python', NOW()),
     (2, 5, 'Решить задачи по производным', NOW()),
     (3, 9, 'Подготовить доклад об истории Руси', NOW()),
@@ -47,13 +47,13 @@ INSERT INTO assignments (course_id, teacher_id, assignment_text, assignment_at) 
     (10, 5, 'Разработать план проекта', NOW());
 
 INSERT INTO submitted_assignments (student_id, assignment_id, submitted_at, grade) VALUES
-    (2, 1, NOW(), 9),
-    (4, 2, NOW(), 8),
-    (6, 3, NOW(), 10),
-    (8, 4, NOW(), 7),
-    (10, 5, NOW(), 8),
-    (2, 6, NOW(), 9),
-    (4, 7, NOW(), 10),
-    (6, 8, NOW(), 7),
-    (8, 9, NOW(), 9),
-    (10, 10, NOW(), 10);
+    (2, 1, NOW(), 4),
+    (4, 2, NOW(), 5),
+    (6, 3, NOW(), 3),
+    (8, 4, NOW(), 4),
+    (10, 5, NOW(), 5),
+    (2, 6, NOW(), 5),
+    (4, 7, NOW(), 4),
+    (6, 8, NOW(), 3),
+    (8, 9, NOW(), 5),
+    (10, 10, NOW(), 5);
