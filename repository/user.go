@@ -22,7 +22,7 @@ func NewUser(db db.DB) User {
 }
 
 func (r User) Register(ctx context.Context, user entity.RegisterUser) error {
-	query := `
+	const query = `
 	INSERT INTO users (username, fio, password, role_id) 
 	VALUES($1, $2, $3, $4)
 	ON CONFLICT DO NOTHING RETURNING id;`
@@ -38,7 +38,7 @@ func (r User) Register(ctx context.Context, user entity.RegisterUser) error {
 }
 
 func (r User) GetUserByUsername(ctx context.Context, username string) (entity.User, error) {
-	query := `
+	const query = `
 	SELECT u.id, username, fio, password, role_id, r.name AS role_name
 	FROM users u
 	JOIN roles r ON u.role_id = r.id 
@@ -55,7 +55,10 @@ func (r User) GetUserByUsername(ctx context.Context, username string) (entity.Us
 }
 
 func (r User) GetUsers(ctx context.Context, limit int32, offset int32) ([]entity.User, error) {
-	query := "SELECT id, username, fio, role_id FROM users LIMIT $1 OFFSET $2"
+	const query = `SELECT u.id, username, fio, password, role_id, r.name AS role_name
+	FROM users u
+	JOIN roles r ON u.role_id = r.id 
+	LIMIT $1 OFFSET $2;`
 	var res []entity.User
 	err := r.db.Select(ctx, &res, query, limit, offset)
 	if err != nil {
@@ -65,12 +68,21 @@ func (r User) GetUsers(ctx context.Context, limit int32, offset int32) ([]entity
 }
 
 func (r User) UpsertUser(ctx context.Context, req entity.UpsertUser) error {
-	query := `
+	const query = `
 	INSERT INTO users (username, fio, password, role_id) 
 	VALUES($1, $2, $3, $4)
 	ON CONFLICT (username) DO UPDATE
 	SET fio = EXCLUDED.fio, password = EXCLUDED.password, role_id=EXCLUDED.role_id;`
 	_, err := r.db.Exec(ctx, query, req.Username, req.Fio, req.PasswordHash, req.RoleId)
+	if err != nil {
+		return errors.WithMessagef(err, "exec query: %s", query)
+	}
+	return nil
+}
+
+func (r User) DeleteUser(ctx context.Context, userId int32) error {
+	const query = "DELETE FROM users WHERE id=$1"
+	_, err := r.db.Exec(ctx, query, userId)
 	if err != nil {
 		return errors.WithMessagef(err, "exec query: %s", query)
 	}

@@ -45,14 +45,28 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			Path:    "/auth/login",
 			Handler: r.Auth.Login,
 		}, {
+			Method:  http.MethodPost,
+			Path:    "/auth/logout",
+			Handler: r.Auth.Logout,
+		}, {
 			Method:       http.MethodPost,
 			Path:         "/auth/register",
 			Handler:      r.Auth.Register,
 			AllowedRoles: []string{domain.AdminType},
 		}, {
 			Method:  http.MethodGet,
-			Path:    "/user/get_role",
+			Path:    "/users/get_role",
 			Handler: r.User.GetRole,
+		}, {
+			Method:       http.MethodGet,
+			Path:         "/users",
+			Handler:      r.User.GetUsers,
+			AllowedRoles: []string{domain.AdminType},
+		}, {
+			Method:       http.MethodDelete,
+			Path:         "/users/:userId",
+			Handler:      r.User.DeleteUser,
+			AllowedRoles: []string{domain.AdminType},
 		}, {
 			Method:  http.MethodGet,
 			Path:    "/roles",

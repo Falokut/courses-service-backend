@@ -6,12 +6,14 @@ import (
 	"net/http"
 
 	"github.com/Falokut/go-kit/http/apierrors"
+	"github.com/Falokut/go-kit/http/types"
 	"github.com/pkg/errors"
 )
 
 type AuthService interface {
 	Login(ctx context.Context, req domain.LoginRequest) (*domain.LoginResponse, error)
 	Register(ctx context.Context, req domain.RegisterRequest) error
+	Logout(ctx context.Context, sessionId string) error
 }
 
 type Auth struct {
@@ -73,4 +75,22 @@ func (c Auth) Register(ctx context.Context, req domain.RegisterRequest) error {
 	default:
 		return err
 	}
+}
+
+// Logout
+//
+//	@Tags		user
+//	@Summary	Завершить сессию
+//	@Produce	json
+//
+//
+//	@Success	200		{object}		any
+//	@Failure	401		{object}	apierrors.Error
+//	@Failure	500		{object}	apierrors.Error
+//
+//	@Security	Bearer
+//
+//	@Router		/auth/logout [POST]
+func (c Auth) Logout(ctx context.Context, token types.BearerToken) error {
+	return c.service.Logout(ctx, token.Token)
 }

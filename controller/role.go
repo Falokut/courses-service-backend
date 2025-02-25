@@ -28,9 +28,9 @@ func NewRole(service RoleService) Role {
 //	@Produce	json
 //
 //
-//	@Success	200		{array}	domain.Role
-//	@Failure	404		{object}	apierrors.Error
-//	@Failure	500		{object}	apierrors.Error
+//	@Success	200	{array}		domain.Role
+//	@Failure	404	{object}	apierrors.Error
+//	@Failure	500	{object}	apierrors.Error
 //	@Router		/roles [GET]
 func (c Role) GetRoles(ctx context.Context) ([]domain.Role, error) {
 	return c.service.GetRoles(ctx)

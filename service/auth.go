@@ -13,30 +13,24 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserRepo interface {
-	Register(ctx context.Context, req entity.RegisterUser) error
-	UpsertUser(ctx context.Context, req entity.UpsertUser) error
-}
-
-type AuthTxRunner interface {
-	LoginTransaction(ctx context.Context, txFunc func(ctx context.Context, tx LoginTx) error) error
-}
-
-type LoginTx interface {
-	GetUserByUsername(ctx context.Context, username string) (entity.User, error)
-	InsertSession(ctx context.Context, session entity.Session) error
-}
-
 type Auth struct {
 	cfg      conf.Auth
+	authRepo AuthRepo
 	userRepo UserRepo
 	roleRepo RoleRepo
 	txRunner AuthTxRunner
 }
 
-func NewAuth(cfg conf.Auth, userRepo UserRepo, roleRepo RoleRepo, txRunner AuthTxRunner) Auth {
+func NewAuth(
+	cfg conf.Auth,
+	authRepo AuthRepo,
+	userRepo UserRepo,
+	roleRepo RoleRepo,
+	txRunner AuthTxRunner,
+) Auth {
 	return Auth{
 		cfg:      cfg,
+		authRepo: authRepo,
 		userRepo: userRepo,
 		roleRepo: roleRepo,
 		txRunner: txRunner,
@@ -123,6 +117,14 @@ func (s Auth) Register(ctx context.Context, req domain.RegisterRequest) error {
 	})
 	if err != nil {
 		return errors.WithMessage(err, "register")
+	}
+	return nil
+}
+
+func (s Auth) Logout(ctx context.Context, sessionId string) error {
+	err := s.authRepo.DeleteSession(ctx, sessionId)
+	if err != nil {
+		return errors.WithMessage(err, "delete session")
 	}
 	return nil
 }

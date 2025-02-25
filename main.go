@@ -8,10 +8,10 @@ import (
 	"github.com/Falokut/go-kit/shutdown"
 )
 
-// @title					courses-service
+// @title						courses-service
 // @version					1.0.0
 // @description				Сервис для записи на курсы
-// @BasePath				/api/courses-service
+// @BasePath					/api/courses-service
 //
 // @securityDefinitions.apikey	Bearer
 // @in							header

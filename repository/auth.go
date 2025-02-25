@@ -56,3 +56,12 @@ func (r Auth) DeleteExpiredSessions(ctx context.Context, startFrom time.Time) er
 	}
 	return nil
 }
+
+func (r Auth) DeleteSession(ctx context.Context, sessionId string) error {
+	const query = "DELETE FROM sessions WHERE id = $1;"
+	_, err := r.db.Exec(ctx, query, sessionId)
+	if err != nil {
+		return errors.WithMessagef(err, "exec query: %s", query)
+	}
+	return nil
+}

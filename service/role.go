@@ -3,15 +3,9 @@ package service
 import (
 	"context"
 	"courses-service/domain"
-	"courses-service/entity"
 
 	"github.com/pkg/errors"
 )
-
-type RoleRepo interface {
-	GetRoleId(ctx context.Context, roleName string) (int32, error)
-	GetRoles(ctx context.Context) ([]entity.Role, error)
-}
 
 type Role struct {
 	repo RoleRepo

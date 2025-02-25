@@ -33,11 +33,11 @@ func Locator(
 ) (Config, error) {
 	txRunner := transaction.NewManager(dbCli)
 
-	userRepo := repository.NewUser(dbCli)
 	authRepo := repository.NewAuth(dbCli)
+	userRepo := repository.NewUser(dbCli)
 	roleRepo := repository.NewRole(dbCli)
 
-	authService := service.NewAuth(cfg.Auth, userRepo, roleRepo, txRunner)
+	authService := service.NewAuth(cfg.Auth, authRepo, userRepo, roleRepo, txRunner)
 	if cfg.Auth.InitAdmin != nil {
 		err := authService.InitAdmin(ctx, *cfg.Auth.InitAdmin)
 		if err != nil {
@@ -46,7 +46,7 @@ func Locator(
 	}
 	auth := controller.NewAuth(authService)
 
-	userService := service.NewUser(authRepo)
+	userService := service.NewUser(authRepo, userRepo)
 	user := controller.NewUser(userService)
 
 	roleService := service.NewRole(roleRepo)
