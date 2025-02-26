@@ -80,7 +80,7 @@ func (c User) GetUsers(ctx context.Context, req domain.LimitOffsetRequest) ([]do
 //
 //	@Param		userId	path		int	true	"максимальное количество записей"
 //
-//	@Success	200		{object}		any
+//	@Success	200		{object}	any
 //	@Failure	400		{object}	apierrors.Error
 //	@Failure	401		{object}	apierrors.Error
 //	@Failure	403		{object}	apierrors.Error

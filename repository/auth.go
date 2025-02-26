@@ -58,10 +58,33 @@ func (r Auth) DeleteExpiredSessions(ctx context.Context, startFrom time.Time) er
 }
 
 func (r Auth) DeleteSession(ctx context.Context, sessionId string) error {
-	const query = "DELETE FROM sessions WHERE id = $1;"
+	const query = "DELETE FROM sessions WHERE id = $1::TEXT;"
 	_, err := r.db.Exec(ctx, query, sessionId)
 	if err != nil {
 		return errors.WithMessagef(err, "exec query: %s", query)
 	}
 	return nil
+}
+
+func (r Auth) DeleteUserSession(ctx context.Context, sessionId string, userId int64) error {
+	const query = "DELETE FROM sessions WHERE id = $1::TEXT AND user_id = $2;"
+	_, err := r.db.Exec(ctx, query, sessionId, userId)
+	if err != nil {
+		return errors.WithMessagef(err, "exec query: %s", query)
+	}
+	return nil
+}
+
+func (r Auth) GetUserSessions(ctx context.Context, userId int64) ([]entity.Session, error) {
+	const query = `SELECT id, user_id, created_at
+	FROM sessions
+	WHERE user_id=$1
+	ORDER BY created_at;`
+
+	userSessions := make([]entity.Session, 0)
+	err := r.db.Select(ctx, &userSessions, query, userId)
+	if err != nil {
+		return nil, errors.WithMessagef(err, "exec query: %s", query)
+	}
+	return userSessions, nil
 }

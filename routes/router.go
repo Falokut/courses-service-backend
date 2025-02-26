@@ -50,6 +50,16 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			Handler: r.Auth.Logout,
 		}, {
 			Method:       http.MethodPost,
+			Path:         "/auth/terminate_session",
+			Handler:      r.Auth.TerminateSession,
+			AllowedRoles: []string{domain.AdminType, domain.StudentType, domain.LectorType},
+		}, {
+			Method:       http.MethodGet,
+			Path:         "/auth/sessions",
+			Handler:      r.Auth.SessionsList,
+			AllowedRoles: []string{domain.AdminType, domain.StudentType, domain.LectorType},
+		}, {
+			Method:       http.MethodPost,
 			Path:         "/auth/register",
 			Handler:      r.Auth.Register,
 			AllowedRoles: []string{domain.AdminType},

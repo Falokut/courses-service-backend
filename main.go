@@ -16,7 +16,7 @@ import (
 // @securityDefinitions.apikey	Bearer
 // @in							header
 // @name						Authorization
-// @description				Type "Bearer" followed by a space and JWT token.
+// @description				Type "Bearer" followed by a space and session id.
 //
 //go:generate swag init --parseDependency
 //go:generate rm -f docs/swagger.json docs/docs.go

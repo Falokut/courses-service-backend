@@ -2,17 +2,19 @@ package domain
 
 import (
 	"context"
+	"fmt"
 	"strconv"
+	"time"
 )
 
 type userIdKey struct{}
 
 func UserIdToContext(ctx context.Context, userId int64) context.Context {
-	return context.WithValue(ctx, userIdKey{}, userId)
+	return context.WithValue(ctx, userIdKey{}, fmt.Sprint(userId))
 }
 
 func UserIdFromContext(ctx context.Context) int64 {
-	userId, err := strconv.Atoi(ctx.Value(userIdKey{}).(string))
+	userId, err := strconv.Atoi(fmt.Sprint(ctx.Value(userIdKey{})))
 	if err != nil {
 		return -1
 	}
@@ -39,4 +41,13 @@ type RegisterRequest struct {
 	Fio      string `validate:"min=6,max=60"`
 	Password string `validate:"min=6,max=20"`
 	RoleId   int32  `validate:"required"`
+}
+
+type TerminateSessionRequest struct {
+	SessionId string `validate:"required"`
+}
+
+type Session struct {
+	Id        string
+	CreatedAt time.Time
 }

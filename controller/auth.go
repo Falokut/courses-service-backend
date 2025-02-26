@@ -14,6 +14,8 @@ type AuthService interface {
 	Login(ctx context.Context, req domain.LoginRequest) (*domain.LoginResponse, error)
 	Register(ctx context.Context, req domain.RegisterRequest) error
 	Logout(ctx context.Context, sessionId string) error
+	TerminateSession(ctx context.Context, sessionId string, userId int64) error
+	SessionsList(ctx context.Context, userId int64) ([]domain.Session, error)
 }
 
 type Auth struct {
@@ -84,13 +86,49 @@ func (c Auth) Register(ctx context.Context, req domain.RegisterRequest) error {
 //	@Produce	json
 //
 //
-//	@Success	200		{object}		any
-//	@Failure	401		{object}	apierrors.Error
-//	@Failure	500		{object}	apierrors.Error
+//	@Success	200	{object}	any
+//	@Failure	401	{object}	apierrors.Error
+//	@Failure	500	{object}	apierrors.Error
 //
 //	@Security	Bearer
 //
 //	@Router		/auth/logout [POST]
 func (c Auth) Logout(ctx context.Context, token types.BearerToken) error {
 	return c.service.Logout(ctx, token.Token)
+}
+
+// TerminateSession
+//
+//	@Tags		user
+//	@Summary	Завершить сессию
+//	@Produce	json
+//
+//
+//	@Success	200	{object}	any
+//	@Failure	401	{object}	apierrors.Error
+//	@Failure	500	{object}	apierrors.Error
+//
+//	@Security	Bearer
+//
+//	@Router		/auth/terminate_session [POST]
+func (c Auth) TerminateSession(ctx context.Context, req domain.TerminateSessionRequest) error {
+	return c.service.TerminateSession(ctx, req.SessionId, domain.UserIdFromContext(ctx))
+}
+
+// Logout
+//
+//	@Tags		user
+//	@Summary	Завершить сессию
+//	@Produce	json
+//
+//
+//	@Success	200	{array}		domain.Session
+//	@Failure	401	{object}	apierrors.Error
+//	@Failure	500	{object}	apierrors.Error
+//
+//	@Security	Bearer
+//
+//	@Router		/auth/sessions [GET]
+func (c Auth) SessionsList(ctx context.Context) ([]domain.Session, error) {
+	return c.service.SessionsList(ctx, domain.UserIdFromContext(ctx))
 }

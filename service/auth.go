@@ -128,3 +128,25 @@ func (s Auth) Logout(ctx context.Context, sessionId string) error {
 	}
 	return nil
 }
+
+func (s Auth) TerminateSession(ctx context.Context, sessionId string, userId int64) error {
+	err := s.authRepo.DeleteUserSession(ctx, sessionId, userId)
+	if err != nil {
+		return errors.WithMessage(err, "delete user session")
+	}
+	return nil
+}
+func (s Auth) SessionsList(ctx context.Context, userId int64) ([]domain.Session, error) {
+	sessions, err := s.authRepo.GetUserSessions(ctx, userId)
+	if err != nil {
+		return nil, errors.WithMessage(err, "get user sessions")
+	}
+	domainSessions := make([]domain.Session, 0, len(sessions))
+	for _, session := range sessions {
+		domainSessions = append(domainSessions, domain.Session{
+			Id:        session.Id,
+			CreatedAt: session.CreatedAt,
+		})
+	}
+	return domainSessions, nil
+}

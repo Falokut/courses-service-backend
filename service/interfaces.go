@@ -24,6 +24,8 @@ type LoginTx interface {
 type AuthRepo interface {
 	GetUserSession(ctx context.Context, sessionId string) (entity.UserSession, error)
 	DeleteSession(ctx context.Context, sessionId string) error
+	DeleteUserSession(ctx context.Context, sessionId string, userId int64) error
+	GetUserSessions(ctx context.Context, userId int64) ([]entity.Session, error)
 }
 
 type RoleRepo interface {

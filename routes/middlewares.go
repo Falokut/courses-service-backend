@@ -44,7 +44,7 @@ func (m AuthMiddleware) AuthRole(roles ...string) http2.Middleware {
 				return errors.WithMessage(err, "get user session")
 			}
 
-			domain.UserIdToContext(ctx, userSession.UserId)
+			ctx = domain.UserIdToContext(ctx, userSession.UserId)
 			if len(roles) == 0 {
 				return next(ctx, w, r)
 			}
