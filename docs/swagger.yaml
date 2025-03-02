@@ -10,9 +10,46 @@ definitions:
       errorMessage:
         type: string
     type: object
+  domain.Course:
+    properties:
+      authorFio:
+        type: string
+      id:
+        type: integer
+      lessons:
+        items:
+          $ref: '#/definitions/domain.Lesson'
+        type: array
+      title:
+        type: string
+    type: object
+  domain.CoursePreview:
+    properties:
+      authorFio:
+        type: string
+      id:
+        type: integer
+      previewPictureUrl:
+        type: string
+      title:
+        type: string
+    type: object
   domain.GetRoleResponse:
     properties:
       roleName:
+        type: string
+    type: object
+  domain.Lesson:
+    properties:
+      createdAt:
+        type: string
+      lessonContent:
+        type: string
+      lessonNumber:
+        type: integer
+      title:
+        type: string
+      videoUrl:
         type: string
     type: object
   domain.LoginRequest:
@@ -209,6 +246,56 @@ paths:
       summary: Завершить сессию
       tags:
       - user
+  /courses:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.CoursePreview'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      summary: Получить список курсов
+      tags:
+      - course
+  /courses/{courseId}:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Course'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      summary: Получить курс
+      tags:
+      - course
   /roles:
     get:
       consumes:

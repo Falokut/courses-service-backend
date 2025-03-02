@@ -51,10 +51,16 @@ func Locator(
 
 	roleService := service.NewRole(roleRepo)
 	role := controller.NewRole(roleService)
+
+	courseRepo := repository.NewCourse(dbCli)
+	courseService := service.NewCourse(courseRepo)
+	course := controller.NewCourse(courseService)
+
 	router := routes.Router{
-		Auth: auth,
-		User: user,
-		Role: role,
+		Auth:   auth,
+		User:   user,
+		Role:   role,
+		Course: course,
 	}
 	authMiddleware := routes.NewAuthMiddleware(authRepo)
 	validator := validator.New(validator.Ru)

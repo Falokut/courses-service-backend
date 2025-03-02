@@ -12,11 +12,13 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     fio TEXT NOT NULL,
-    password TEXT NOT NULL,
+    PASSWORD TEXT NOT NULL,
     role_id INT NOT NULL DEFAULT 0 REFERENCES roles (id) ON UPDATE CASCADE ON DELETE SET DEFAULT
 );
 
-INSERT INTO users(id,username,fio, password) VALUES(0,'DELETED','DELETED','');
+INSERT INTO
+    users (id, username, fio, PASSWORD)
+VALUES (0, 'DELETED', 'DELETED', '');
 
 CREATE TABLE sessions (
     id TEXT PRIMARY KEY,
@@ -24,30 +26,38 @@ CREATE TABLE sessions (
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-
 CREATE TABLE courses (
     id SERIAL PRIMARY KEY,
     author_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    name TEXT NOT NULL,
+    title TEXT NOT NULL,
     preview_picture_url TEXT DEFAULT ''
 );
 
-INSERT INTO courses(id,author_id,name) VALUES(0,0,'DELETED');
+INSERT INTO courses (id, author_id, title) VALUES (0, 0, 'DELETED');
 
 CREATE TABLE course_lessons (
     id SERIAL PRIMARY KEY,
+    lesson_number INT NOT NULL,
     course_id INT NOT NULL REFERENCES courses (id) ON UPDATE CASCADE ON DELETE CASCADE,
     title TEXT NOT NULL,
     created_at TIMESTAMPTZ,
-    description TEXT
+    lesson_content TEXT,
+    video_url TEXT DEFAULT ''
 );
 
-INSERT INTO course_lessons(id, course_id, title) VALUES(0, 0, 'DELETED');
+INSERT INTO
+    course_lessons (
+        id,
+        lesson_number,
+        course_id,
+        title
+    )
+VALUES (0, 0, 0, 'DELETED');
 
 CREATE TABLE lesson_attachments (
     id SERIAL PRIMARY KEY,
     attachment_type TEXT NOT NULL,
-    lesson_id INT NOT NULL DEFAULT 0 REFERENCES course_lessons (id) ON UPDATE CASCADE ON DELETE SET DEFAULT,
+    lesson_number INT NOT NULL DEFAULT 0 REFERENCES course_lessons (id) ON UPDATE CASCADE ON DELETE SET DEFAULT,
     pretty_name TEXT,
     url TEXT NOT NULL
 );

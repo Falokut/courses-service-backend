@@ -32,3 +32,8 @@ type RoleRepo interface {
 	GetRoleId(ctx context.Context, roleName string) (int32, error)
 	GetRoles(ctx context.Context) ([]entity.Role, error)
 }
+
+type CourseRepo interface {
+	GetCoursesPreview(ctx context.Context, limit int32, offset int32) ([]entity.CoursePreview, error)
+	GetCourse(ctx context.Context, id int64) (entity.Course, error)
+}

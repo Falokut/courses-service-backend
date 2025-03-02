@@ -11,9 +11,10 @@ import (
 )
 
 type Router struct {
-	Auth controller.Auth
-	User controller.User
-	Role controller.Role
+	Auth   controller.Auth
+	User   controller.User
+	Role   controller.Role
+	Course controller.Course
 }
 
 func (r Router) InitRoutes(authMiddleware AuthMiddleware, wrapper endpoint.Wrapper) *router.Router {
@@ -81,6 +82,14 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			Method:  http.MethodGet,
 			Path:    "/roles",
 			Handler: r.Role.GetRoles,
+		}, {
+			Method:  http.MethodGet,
+			Path:    "/courses",
+			Handler: r.Course.GetCoursesPreview,
+		}, {
+			Method:  http.MethodGet,
+			Path:    "/courses/:courseId",
+			Handler: r.Course.GetCourse,
 		},
 	}
 }

@@ -57,7 +57,8 @@ func (r User) GetUserByUsername(ctx context.Context, username string) (entity.Us
 func (r User) GetUsers(ctx context.Context, limit int32, offset int32) ([]entity.User, error) {
 	const query = `SELECT u.id, username, fio, password, role_id, r.name AS role_name
 	FROM users u
-	JOIN roles r ON u.role_id = r.id 
+	JOIN roles r ON u.role_id = r.id
+	WHERE u.id > 0
 	LIMIT $1 OFFSET $2;`
 	var res []entity.User
 	err := r.db.Select(ctx, &res, query, limit, offset)
@@ -69,10 +70,12 @@ func (r User) GetUsers(ctx context.Context, limit int32, offset int32) ([]entity
 
 func (r User) UpsertUser(ctx context.Context, req entity.UpsertUser) error {
 	const query = `
-	INSERT INTO users (username, fio, password, role_id) 
-	VALUES($1, $2, $3, $4)
+	INSERT INTO users (username, fio, password, role_id) VALUES($1, $2, $3, $4)
 	ON CONFLICT (username) DO UPDATE
-	SET fio = EXCLUDED.fio, password = EXCLUDED.password, role_id=EXCLUDED.role_id;`
+	SET 
+		fio = EXCLUDED.fio, 
+		password = EXCLUDED.password,
+		role_id=EXCLUDED.role_id;`
 	_, err := r.db.Exec(ctx, query, req.Username, req.Fio, req.PasswordHash, req.RoleId)
 	if err != nil {
 		return errors.WithMessagef(err, "exec query: %s", query)
