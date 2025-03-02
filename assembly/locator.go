@@ -46,7 +46,7 @@ func Locator(
 	}
 	auth := controller.NewAuth(authService)
 
-	userService := service.NewUser(authRepo, userRepo)
+	userService := service.NewUser(cfg.Auth, authRepo, userRepo)
 	user := controller.NewUser(userService)
 
 	roleService := service.NewRole(roleRepo)

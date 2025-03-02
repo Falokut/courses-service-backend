@@ -8,8 +8,11 @@ import (
 	"courses-service/entity"
 
 	"github.com/Falokut/go-kit/client/db"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/pkg/errors"
 )
+
+const usernameUniqueConstraint = "users_username_key"
 
 type User struct {
 	db db.DB
@@ -68,6 +71,29 @@ func (r User) GetUsers(ctx context.Context, limit int32, offset int32) ([]entity
 	return res, nil
 }
 
+func (r User) GetUserBySessionId(ctx context.Context, sessionId string) (*entity.User, error) {
+	const query = `SELECT
+		u.id, 
+		u.fio,
+		u.username,
+		u.password, 
+		r.id AS role_id,
+		r.name AS role_name
+	FROM sessions s
+	JOIN users u ON s.user_id = u.id
+	JOIN roles r ON u.role_id = r.id
+	WHERE s.id=$1::TEXT;`
+	var user entity.User
+	err := r.db.SelectRow(ctx, &user, query, sessionId)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return nil, domain.ErrSessionNotFound
+	case err != nil:
+		return nil, errors.WithMessagef(err, "exec query: %s", query)
+	}
+	return &user, nil
+}
+
 func (r User) UpsertUser(ctx context.Context, req entity.UpsertUser) error {
 	const query = `
 	INSERT INTO users (username, fio, password, role_id) VALUES($1, $2, $3, $4)
@@ -81,6 +107,23 @@ func (r User) UpsertUser(ctx context.Context, req entity.UpsertUser) error {
 		return errors.WithMessagef(err, "exec query: %s", query)
 	}
 	return nil
+}
+
+func (r User) UpdateUser(ctx context.Context, req entity.User) error {
+	const query = `
+	UPDATE users
+	SET username = $1, fio = $2, password = $3, role_id = $4
+	WHERE id = $5;`
+	_, err := r.db.Exec(ctx, query, req.Username, req.Fio, req.Password, req.RoleId, req.Id)
+	pgError := &pgconn.PgError{}
+	switch {
+	case errors.As(err, &pgError) && pgError.ConstraintName == usernameUniqueConstraint:
+		return domain.ErrUserAlreadyExists
+	case err != nil:
+		return errors.WithMessagef(err, "exec query: %s", query)
+	default:
+		return nil
+	}
 }
 
 func (r User) DeleteUser(ctx context.Context, userId int32) error {

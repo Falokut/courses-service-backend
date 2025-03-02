@@ -10,6 +10,8 @@ type UserRepo interface {
 	UpsertUser(ctx context.Context, req entity.UpsertUser) error
 	GetUsers(ctx context.Context, limit int32, offset int32) ([]entity.User, error)
 	DeleteUser(ctx context.Context, userId int32) error
+	GetUserBySessionId(ctx context.Context, sessionId string) (*entity.User, error)
+	UpdateUser(ctx context.Context, req entity.User) error
 }
 
 type AuthTxRunner interface {

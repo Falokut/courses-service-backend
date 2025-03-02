@@ -114,6 +114,19 @@ definitions:
       username:
         type: string
     type: object
+  domain.UserProfile:
+    properties:
+      fio:
+        type: string
+      id:
+        type: integer
+      roleId:
+        type: integer
+      roleName:
+        type: string
+      username:
+        type: string
+    type: object
 info:
   contact: {}
   description: Сервис для записи на курсы
@@ -321,6 +334,41 @@ paths:
       tags:
       - role
   /users:
+    delete:
+      parameters:
+      - description: максимальное количество записей
+        in: query
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      security:
+      - Bearer: []
+      summary: Удалить пользователя
+      tags:
+      - user
     get:
       parameters:
       - description: максимальное количество записей
@@ -363,14 +411,14 @@ paths:
       summary: Получить пользователей
       tags:
       - user
-  /users/{userId}:
-    delete:
+    post:
       parameters:
-      - description: максимальное количество записей
-        in: path
-        name: userId
+      - description: тело запроса
+        in: body
+        name: body
         required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/domain.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -390,13 +438,17 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/apierrors.Error'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/apierrors.Error'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/apierrors.Error'
       security:
       - Bearer: []
-      summary: Удалить пользователя
+      summary: Редактировать профиль пользователя
       tags:
       - user
   /users/get_role:
@@ -423,6 +475,36 @@ paths:
       security:
       - Bearer: []
       summary: Получить роль пользователя
+      tags:
+      - user
+  /users/profile:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UserProfile'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      security:
+      - Bearer: []
+      summary: Получить профиль пользователя
       tags:
       - user
 securityDefinitions:

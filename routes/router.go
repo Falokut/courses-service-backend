@@ -75,9 +75,19 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			AllowedRoles: []string{domain.AdminType},
 		}, {
 			Method:       http.MethodDelete,
-			Path:         "/users/:userId",
+			Path:         "/users",
 			Handler:      r.User.DeleteUser,
 			AllowedRoles: []string{domain.AdminType},
+		}, {
+			Method:       http.MethodPost,
+			Path:         "/users",
+			Handler:      r.User.EditUser,
+			AllowedRoles: []string{domain.AdminType},
+		}, {
+			Method:       http.MethodGet,
+			Path:         "/users/profile",
+			Handler:      r.User.GetUserProfile,
+			AllowedRoles: []string{domain.AdminType, domain.StudentType, domain.LectorType},
 		}, {
 			Method:  http.MethodGet,
 			Path:    "/roles",
