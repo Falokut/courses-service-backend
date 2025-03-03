@@ -62,6 +62,7 @@ func (r User) GetUsers(ctx context.Context, limit int32, offset int32) ([]entity
 	FROM users u
 	JOIN roles r ON u.role_id = r.id
 	WHERE u.id > 0
+	ORDER BY u.id
 	LIMIT $1 OFFSET $2;`
 	var res []entity.User
 	err := r.db.Select(ctx, &res, query, limit, offset)
@@ -133,4 +134,18 @@ func (r User) DeleteUser(ctx context.Context, userId int32) error {
 		return errors.WithMessagef(err, "exec query: %s", query)
 	}
 	return nil
+}
+
+func (r User) GetUsersByRoleName(ctx context.Context, roleName string) ([]entity.User, error) {
+	const query = `SELECT u.id, username, fio, password, role_id, r.name AS role_name
+	FROM users u
+	JOIN roles r ON u.role_id = r.id
+	WHERE r.name =$1
+	ORDER BY u.id;`
+	var res []entity.User
+	err := r.db.Select(ctx, &res, query, roleName)
+	if err != nil {
+		return nil, errors.WithMessagef(err, "exec query: %s", query)
+	}
+	return res, nil
 }

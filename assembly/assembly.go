@@ -6,6 +6,7 @@ import (
 
 	"github.com/Falokut/go-kit/http"
 	"github.com/Falokut/go-kit/http/client"
+	"github.com/Falokut/go-kit/worker"
 
 	"courses-service/conf"
 
@@ -18,12 +19,13 @@ import (
 )
 
 type Assembly struct {
-	logger             log.Logger
-	db                 *db.Client
-	imagesCli          *client.Client
-	server             *http.Server
-	healthcheckManager *healthcheck.Manager
-	localCfg           conf.LocalConfig
+	logger                   log.Logger
+	db                       *db.Client
+	filesCli                 *client.Client
+	server                   *http.Server
+	attachmentsCleanerWorker *worker.Worker
+	healthcheckManager       *healthcheck.Manager
+	localCfg                 conf.LocalConfig
 }
 
 func New(ctx context.Context, logger log.Logger) (*Assembly, error) {
@@ -37,25 +39,26 @@ func New(ctx context.Context, logger log.Logger) (*Assembly, error) {
 		return nil, errors.WithMessage(err, "init db")
 	}
 	server := http.NewServer(logger)
-	imagesCli := client.Default()
-	imagesCli.GlobalRequestConfig().BaseUrl = localCfg.Images.BaseServiceUrl
+	filesCli := client.Default()
 
-	locatorCfg, err := Locator(ctx, logger, dbCli, imagesCli, localCfg)
+	locatorCfg, err := Locator(ctx, logger, dbCli, filesCli, localCfg)
 	if err != nil {
 		return nil, errors.WithMessage(err, "locator config")
 	}
 	server.Upgrade(locatorCfg.HttpRouter)
+	attachmentsCleanerWorker := worker.New(locatorCfg.CleanJob)
 
 	healthcheckManager := healthcheck.NewHealthManager(logger, fmt.Sprint(localCfg.HealthcheckPort))
 	healthcheckManager.Register("db", dbCli.PingContext)
 
 	return &Assembly{
-		logger:             logger,
-		localCfg:           localCfg,
-		db:                 dbCli,
-		imagesCli:          imagesCli,
-		server:             server,
-		healthcheckManager: &healthcheckManager,
+		logger:                   logger,
+		localCfg:                 localCfg,
+		db:                       dbCli,
+		filesCli:                 filesCli,
+		server:                   server,
+		healthcheckManager:       &healthcheckManager,
+		attachmentsCleanerWorker: attachmentsCleanerWorker,
 	}, nil
 }
 
@@ -66,6 +69,10 @@ func (a *Assembly) Runners() []app.RunnerFunc {
 		},
 		func(_ context.Context) error {
 			return a.healthcheckManager.RunHealthcheckEndpoint()
+		},
+		func(ctx context.Context) error {
+			a.attachmentsCleanerWorker.Run(ctx)
+			return nil
 		},
 	}
 }

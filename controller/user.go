@@ -13,6 +13,7 @@ import (
 type UserService interface {
 	GetRole(ctx context.Context, sessionId string) (*domain.GetRoleResponse, error)
 	GetUsers(ctx context.Context, req domain.LimitOffsetRequest) ([]domain.User, error)
+	GetLectors(ctx context.Context) ([]domain.User, error)
 	GetUserProfile(ctx context.Context, sessionId string) (*domain.UserProfile, error)
 	DeleteUser(ctx context.Context, userId int32) error
 	EditUser(ctx context.Context, req domain.EditUserRequest) error
@@ -73,6 +74,21 @@ func (c User) GetRole(ctx context.Context, tokenReq types.BearerToken) (*domain.
 //	@Router		/users [GET]
 func (c User) GetUsers(ctx context.Context, req domain.LimitOffsetRequest) ([]domain.User, error) {
 	return c.service.GetUsers(ctx, req)
+}
+
+// GetLectors
+//
+//	@Tags		user
+//	@Summary	Получить лекторов
+//	@Produce	json
+//
+//	@Success	200	{array}		domain.User
+//	@Failure	500	{object}	apierrors.Error
+//
+//
+//	@Router		/users/lectors [GET]
+func (c User) GetLectors(ctx context.Context) ([]domain.User, error) {
+	return c.service.GetLectors(ctx)
 }
 
 // GetUserProfile

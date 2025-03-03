@@ -34,3 +34,37 @@ func (m Manager) LoginTransaction(ctx context.Context, txFunc func(ctx context.C
 		})
 	})
 }
+
+type courseTransaction struct {
+	repository.Course
+}
+
+func (m Manager) AddCourseTransaction(ctx context.Context, txFunc func(ctx context.Context, tx service.AddCourseTx) error) error {
+	return m.db.RunInTransaction(ctx, func(ctx context.Context, tx *db.Tx) error {
+		courseRepo := repository.NewCourse(tx)
+		return txFunc(ctx, courseTransaction{
+			courseRepo,
+		})
+	})
+}
+func (m Manager) EditCourseTransaction(ctx context.Context, txFunc func(ctx context.Context, tx service.EditCourseTx) error) error {
+	return m.db.RunInTransaction(ctx, func(ctx context.Context, tx *db.Tx) error {
+		courseRepo := repository.NewCourse(tx)
+		return txFunc(ctx, courseTransaction{
+			courseRepo,
+		})
+	})
+}
+
+type attachmentTransaction struct {
+	repository.Attachment
+}
+
+func (m Manager) CleanAttachmentsTransaction(ctx context.Context, txFunc func(ctx context.Context, tx service.AttachmentCleanerTx) error) error {
+	return m.db.RunInTransaction(ctx, func(ctx context.Context, tx *db.Tx) error {
+		attachmentRepo := repository.NewAttachment(tx)
+		return txFunc(ctx, attachmentTransaction{
+			attachmentRepo,
+		})
+	})
+}

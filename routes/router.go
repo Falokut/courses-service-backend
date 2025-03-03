@@ -17,12 +17,22 @@ type Router struct {
 	Course controller.Course
 }
 
-func (r Router) InitRoutes(authMiddleware AuthMiddleware, wrapper endpoint.Wrapper) *router.Router {
+func (r Router) InitRoutes(
+	authMiddleware AuthMiddleware,
+	wrapper endpoint.Wrapper,
+	wrapperWithoutMaxBodySize endpoint.Wrapper,
+) *router.Router {
 	mux := router.New()
 	disableCors := DisableCors{}
 	mux.InternalRouter().GlobalOPTIONS = disableCors
+
 	for _, desc := range endpointDescriptors(r) {
-		endpointWrapper := wrapper.WithMiddlewares(disableCors.Middleware)
+		var endpointWrapper endpoint.Wrapper
+		if desc.DisableMaxBodySize {
+			endpointWrapper = wrapperWithoutMaxBodySize.WithMiddlewares(disableCors.Middleware)
+		} else {
+			endpointWrapper = wrapper.WithMiddlewares(disableCors.Middleware)
+		}
 		if len(desc.AllowedRoles) > 0 {
 			endpointWrapper = endpointWrapper.WithMiddlewares(authMiddleware.AuthRole(desc.AllowedRoles...))
 		}
@@ -33,10 +43,11 @@ func (r Router) InitRoutes(authMiddleware AuthMiddleware, wrapper endpoint.Wrapp
 }
 
 type EndpointDescriptor struct {
-	Method       string
-	Path         string
-	AllowedRoles []string
-	Handler      any
+	Method             string
+	Path               string
+	AllowedRoles       []string
+	Handler            any
+	DisableMaxBodySize bool
 }
 
 func endpointDescriptors(r Router) []EndpointDescriptor {
@@ -90,6 +101,10 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			AllowedRoles: []string{domain.AdminType, domain.StudentType, domain.LectorType},
 		}, {
 			Method:  http.MethodGet,
+			Path:    "/users/lectors",
+			Handler: r.User.GetLectors,
+		}, {
+			Method:  http.MethodGet,
 			Path:    "/roles",
 			Handler: r.Role.GetRoles,
 		}, {
@@ -97,10 +112,28 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			Path:    "/courses",
 			Handler: r.Course.GetCoursesPreview,
 		}, {
+			Method:       http.MethodDelete,
+			Path:         "/courses",
+			Handler:      r.Course.DeleteCourse,
+			AllowedRoles: []string{domain.AdminType},
+		}, {
+			Method:             http.MethodPost,
+			Path:               "/courses",
+			Handler:            r.Course.AddCourse,
+			AllowedRoles:       []string{domain.AdminType},
+			DisableMaxBodySize: true,
+		}, {
+			Method:             http.MethodPost,
+			Path:               "/courses/edit",
+			Handler:            r.Course.EditCourse,
+			AllowedRoles:       []string{domain.AdminType},
+			DisableMaxBodySize: true,
+		}, {
 			Method:  http.MethodGet,
 			Path:    "/courses/by_id",
 			Handler: r.Course.GetCourse,
-		}, {Method: http.MethodPost,
+		}, {
+			Method:       http.MethodPost,
 			Path:         "/courses/register",
 			Handler:      r.Course.Register,
 			AllowedRoles: []string{domain.AdminType, domain.StudentType, domain.LectorType},
@@ -113,7 +146,12 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			Method:       http.MethodGet,
 			Path:         "/courses/user_courses",
 			Handler:      r.Course.GetUserCourses,
-			AllowedRoles: []string{domain.AdminType, domain.StudentType, domain.LectorType},
+			AllowedRoles: []string{domain.AdminType, domain.StudentType},
+		}, {
+			Method:       http.MethodGet,
+			Path:         "/courses/lector_courses",
+			Handler:      r.Course.GetLectorCourses,
+			AllowedRoles: []string{domain.LectorType},
 		},
 	}
 }
