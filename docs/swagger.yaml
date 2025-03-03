@@ -10,6 +10,26 @@ definitions:
       errorMessage:
         type: string
     type: object
+  domain.AddCourseRequest:
+    properties:
+      authorId:
+        type: integer
+      previewPicture:
+        items:
+          type: integer
+        type: array
+      title:
+        type: string
+    required:
+    - authorId
+    - previewPicture
+    - title
+    type: object
+  domain.AddCourseResponse:
+    properties:
+      previewPictureUrl:
+        type: string
+    type: object
   domain.Course:
     properties:
       authorFio:
@@ -34,11 +54,36 @@ definitions:
     properties:
       authorFio:
         type: string
+      authorId:
+        type: integer
       id:
         type: integer
       previewPictureUrl:
         type: string
       title:
+        type: string
+    type: object
+  domain.EditCourseRequest:
+    properties:
+      authorId:
+        type: integer
+      courseId:
+        type: integer
+      previewPicture:
+        items:
+          type: integer
+        type: array
+      title:
+        type: string
+    required:
+    - authorId
+    - courseId
+    - previewPicture
+    - title
+    type: object
+  domain.EditCourseResponse:
+    properties:
+      newPreviewPictureUrl:
         type: string
     type: object
   domain.EditUserRequest:
@@ -311,6 +356,41 @@ paths:
       tags:
       - user
   /courses:
+    delete:
+      parameters:
+      - description: идентификатор курса
+        in: query
+        name: courseId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      security:
+      - Bearer: []
+      summary: Удалить курс
+      tags:
+      - course
     get:
       consumes:
       - application/json
@@ -332,6 +412,44 @@ paths:
           schema:
             $ref: '#/definitions/apierrors.Error'
       summary: Получить список курсов
+      tags:
+      - course
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: тело запроса
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.AddCourseRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.AddCourseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      security:
+      - Bearer: []
+      summary: Создать курс
       tags:
       - course
   /courses/by_id:
@@ -364,6 +482,49 @@ paths:
           schema:
             $ref: '#/definitions/apierrors.Error'
       summary: Получить курс
+      tags:
+      - course
+  /courses/edit:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: тело запроса
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EditCourseRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.EditCourseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      security:
+      - Bearer: []
+      summary: Редактировать курс
       tags:
       - course
   /courses/is_registered:
@@ -637,6 +798,24 @@ paths:
       security:
       - Bearer: []
       summary: Получить роль пользователя
+      tags:
+      - user
+  /users/lectors:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.User'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      summary: Получить лекторов
       tags:
       - user
   /users/profile:

@@ -11,6 +11,7 @@ import (
 	"courses-service/transaction"
 
 	"github.com/Falokut/go-kit/client/db"
+	"github.com/Falokut/go-kit/http"
 	"github.com/Falokut/go-kit/http/client"
 	"github.com/Falokut/go-kit/http/endpoint"
 	"github.com/Falokut/go-kit/http/router"
@@ -28,7 +29,7 @@ func Locator(
 	ctx context.Context,
 	logger log.Logger,
 	dbCli *db.Client,
-	imagesCli *client.Client,
+	filesCli *client.Client,
 	cfg conf.LocalConfig,
 ) (Config, error) {
 	txRunner := transaction.NewManager(dbCli)
@@ -52,8 +53,9 @@ func Locator(
 	roleService := service.NewRole(roleRepo)
 	role := controller.NewRole(roleService)
 
+	filesRepo := repository.NewFile(filesCli, cfg.FileStorage.BaseServiceUrl)
 	courseRepo := repository.NewCourse(dbCli)
-	courseService := service.NewCourse(courseRepo)
+	courseService := service.NewCourse(courseRepo, txRunner, filesRepo)
 	course := controller.NewCourse(courseService)
 
 	router := routes.Router{
@@ -62,9 +64,18 @@ func Locator(
 		Role:   role,
 		Course: course,
 	}
+
 	authMiddleware := routes.NewAuthMiddleware(authRepo)
 	validator := validator.New(validator.Ru)
+	defaultWrapper := endpoint.DefaultWrapper(logger, endpoint.Log(logger, true, true)).WithValidator(validator)
+	wrapperWithoutMaxBodySize := endpoint.DefaultWrapper(logger, nil).WithValidator(validator)
+	wrapperWithoutMaxBodySize.Middlewares = []http.Middleware{
+		endpoint.RequestId(),
+		http.Middleware(endpoint.Log(logger, false, true)),
+		endpoint.ErrorHandler(logger),
+		endpoint.Recovery(),
+	}
 	return Config{
-		HttpRouter: router.InitRoutes(authMiddleware, endpoint.DefaultWrapper(logger).WithValidator(validator)),
+		HttpRouter: router.InitRoutes(authMiddleware, defaultWrapper, wrapperWithoutMaxBodySize),
 	}, nil
 }

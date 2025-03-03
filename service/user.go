@@ -37,20 +37,9 @@ func (s User) GetRole(ctx context.Context, sessionId string) (*domain.GetRoleRes
 func (s User) GetUsers(ctx context.Context, req domain.LimitOffsetRequest) ([]domain.User, error) {
 	users, err := s.userRepo.GetUsers(ctx, req.Limit, req.Offset)
 	if err != nil {
-		return nil, errors.WithMessage(err, "get roles")
+		return nil, errors.WithMessage(err, "get users")
 	}
-	domainUsers := make([]domain.User, 0, len(users))
-	for _, user := range users {
-		domainUsers = append(domainUsers,
-			domain.User{
-				Id:       user.Id,
-				Username: user.Username,
-				Fio:      user.Fio,
-				RoleName: user.RoleName,
-				RoleId:   user.RoleId,
-			})
-	}
-	return domainUsers, nil
+	return entityUserToDomain(users), nil
 }
 
 func (s User) GetUserProfile(ctx context.Context, sessionId string) (*domain.UserProfile, error) {
@@ -92,4 +81,27 @@ func (s User) EditUser(ctx context.Context, req domain.EditUserRequest) error {
 		return errors.WithMessage(err, "update user")
 	}
 	return nil
+}
+
+func (s User) GetLectors(ctx context.Context) ([]domain.User, error) {
+	users, err := s.userRepo.GetUsersByRoleName(ctx, domain.LectorType)
+	if err != nil {
+		return nil, errors.WithMessage(err, "get users by role name")
+	}
+	return entityUserToDomain(users), nil
+}
+
+func entityUserToDomain(users []entity.User) []domain.User {
+	domainUsers := make([]domain.User, 0, len(users))
+	for _, user := range users {
+		domainUsers = append(domainUsers,
+			domain.User{
+				Id:       user.Id,
+				Username: user.Username,
+				Fio:      user.Fio,
+				RoleName: user.RoleName,
+				RoleId:   user.RoleId,
+			})
+	}
+	return domainUsers
 }

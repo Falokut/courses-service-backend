@@ -13,6 +13,7 @@ var (
 	ErrWrongSecret            = errors.New("неверный пароль")
 	ErrForbidden              = errors.New("доступ запрещён")
 	ErrInvalidAuthData        = errors.New("невалидные данные для авторизации")
+	ErrCourseNotFound         = errors.New("курс не найден")
 )
 
 const (
@@ -21,4 +22,5 @@ const (
 	ErrCodeUserNotFound      = 604
 	ErrCodeUserAlreadyExists = 605
 	ErrCodeWrongSecret       = 606
+	ErrCodeCourseNotFound    = 607
 )

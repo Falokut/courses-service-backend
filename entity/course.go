@@ -8,17 +8,31 @@ import (
 )
 
 type CoursePreview struct {
-	Id                int
+	Id                int64
+	AuthorId          int64
 	AuthorFio         string
 	Title             string
 	PreviewPictureUrl string
 }
 
 type Course struct {
-	Id        int
+	Id        int64
 	AuthorFio string
 	Title     string
 	Lessons   Lessons
+}
+
+type AddCourseRequest struct {
+	AuthorId          int64
+	Title             string
+	PreviewPictureUrl string
+}
+
+type EditCourseRequest struct {
+	Id                int64
+	AuthorId          int64
+	Title             string
+	PreviewPictureUrl string
 }
 
 type Lesson struct {

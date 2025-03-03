@@ -37,10 +37,9 @@ func New(ctx context.Context, logger log.Logger) (*Assembly, error) {
 		return nil, errors.WithMessage(err, "init db")
 	}
 	server := http.NewServer(logger)
-	imagesCli := client.Default()
-	imagesCli.GlobalRequestConfig().BaseUrl = localCfg.Images.BaseServiceUrl
+	filesCli := client.Default()
 
-	locatorCfg, err := Locator(ctx, logger, dbCli, imagesCli, localCfg)
+	locatorCfg, err := Locator(ctx, logger, dbCli, filesCli, localCfg)
 	if err != nil {
 		return nil, errors.WithMessage(err, "locator config")
 	}
@@ -53,7 +52,7 @@ func New(ctx context.Context, logger log.Logger) (*Assembly, error) {
 		logger:             logger,
 		localCfg:           localCfg,
 		db:                 dbCli,
-		imagesCli:          imagesCli,
+		imagesCli:          filesCli,
 		server:             server,
 		healthcheckManager: &healthcheckManager,
 	}, nil

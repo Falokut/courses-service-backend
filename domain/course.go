@@ -7,14 +7,15 @@ type GetCourseRequest struct {
 }
 
 type CoursePreview struct {
-	Id                int
+	Id                int64
+	AuthorId          int64
 	AuthorFio         string
 	Title             string
 	PreviewPictureUrl string
 }
 
 type Course struct {
-	Id        int
+	Id        int64
 	AuthorFio string
 	Title     string
 	Lessons   []Lesson
@@ -43,4 +44,25 @@ type CourseIdRequest struct {
 
 type IsRegisteredResponse struct {
 	IsRegistered bool
+}
+
+type AddCourseRequest struct {
+	AuthorId       int64  `validate:"required"`
+	Title          string `validate:"required"`
+	PreviewPicture []byte `validate:"required"`
+}
+
+type AddCourseResponse struct {
+	PreviewPictureUrl string
+}
+
+type EditCourseRequest struct {
+	CourseId       int64  `validate:"required"`
+	AuthorId       int64  `validate:"required"`
+	Title          string `validate:"required"`
+	PreviewPicture []byte `validate:"required"`
+}
+
+type EditCourseResponse struct {
+	NewPreviewPictureUrl string
 }

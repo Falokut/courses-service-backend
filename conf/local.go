@@ -9,13 +9,12 @@ type LocalConfig struct {
 	HealthcheckPort uint32          `yaml:"healthcheck_port" env:"HEALTHCHECK_PORT" env-default:"8081"`
 	DB              config.Database `yaml:"db"`
 	Listen          config.Listen   `yaml:"listen"`
-	Images          Images          `yaml:"images"`
+	FileStorage     FileStorage     `yaml:"file_storage"`
 	Auth            Auth            `yaml:"auth"`
 }
 
-type Images struct {
-	BaseServiceUrl string `yaml:"base_service_url" env:"IMAGES_BASE_SERVICE_URL"`
-	BaseImagePath  string `yaml:"base_image_path" env:"BASE_IMAGE_PATH"`
+type FileStorage struct {
+	BaseServiceUrl string `yaml:"base_service_url" env:"FILE_STORAGE_BASE_SERVICE_URL"`
 }
 
 type Auth struct {

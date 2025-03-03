@@ -3,7 +3,7 @@ module courses-service
 go 1.23
 
 require (
-	github.com/Falokut/go-kit v1.2.1-0.20250223102811-99d176c1c440
+	github.com/Falokut/go-kit v1.3.1
 	github.com/pkg/errors v0.9.1
 )
 
