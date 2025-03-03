@@ -98,8 +98,22 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			Handler: r.Course.GetCoursesPreview,
 		}, {
 			Method:  http.MethodGet,
-			Path:    "/courses/:courseId",
+			Path:    "/courses/by_id",
 			Handler: r.Course.GetCourse,
+		}, {Method: http.MethodPost,
+			Path:         "/courses/register",
+			Handler:      r.Course.Register,
+			AllowedRoles: []string{domain.AdminType, domain.StudentType, domain.LectorType},
+		}, {
+			Method:       http.MethodGet,
+			Path:         "/courses/is_registered",
+			Handler:      r.Course.IsRegistered,
+			AllowedRoles: []string{domain.AdminType, domain.StudentType, domain.LectorType},
+		}, {
+			Method:       http.MethodGet,
+			Path:         "/courses/user_courses",
+			Handler:      r.Course.GetUserCourses,
+			AllowedRoles: []string{domain.AdminType, domain.StudentType, domain.LectorType},
 		},
 	}
 }

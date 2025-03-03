@@ -23,6 +23,13 @@ definitions:
       title:
         type: string
     type: object
+  domain.CourseIdRequest:
+    properties:
+      courseId:
+        type: integer
+    required:
+    - courseId
+    type: object
   domain.CoursePreview:
     properties:
       authorFio:
@@ -34,10 +41,37 @@ definitions:
       title:
         type: string
     type: object
+  domain.EditUserRequest:
+    properties:
+      fio:
+        maxLength: 60
+        minLength: 6
+        type: string
+      password:
+        maxLength: 20
+        minLength: 6
+        type: string
+      roleId:
+        type: integer
+      userId:
+        type: integer
+      username:
+        maxLength: 50
+        minLength: 4
+        type: string
+    required:
+    - roleId
+    - userId
+    type: object
   domain.GetRoleResponse:
     properties:
       roleName:
         type: string
+    type: object
+  domain.IsRegisteredResponse:
+    properties:
+      isRegistered:
+        type: boolean
     type: object
   domain.Lesson:
     properties:
@@ -283,10 +317,16 @@ paths:
       summary: Получить список курсов
       tags:
       - course
-  /courses/{courseId}:
+  /courses/by_id:
     get:
       consumes:
       - application/json
+      parameters:
+      - description: идентификатор курса
+        in: query
+        name: courseId
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -307,6 +347,111 @@ paths:
           schema:
             $ref: '#/definitions/apierrors.Error'
       summary: Получить курс
+      tags:
+      - course
+  /courses/is_registered:
+    get:
+      parameters:
+      - description: идентификатор курса
+        in: query
+        name: courseId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.IsRegisteredResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      security:
+      - Bearer: []
+      summary: Проверить зарегистрирован пользователь на курс
+      tags:
+      - course
+  /courses/register:
+    post:
+      parameters:
+      - description: тело запроса
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CourseIdRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      security:
+      - Bearer: []
+      summary: Зарегистрироваться на курс
+      tags:
+      - course
+  /courses/user_courses:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.CoursePreview'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      security:
+      - Bearer: []
+      summary: Получить курсы пользователя
       tags:
       - course
   /roles:
@@ -418,7 +563,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/domain.RegisterRequest'
+          $ref: '#/definitions/domain.EditUserRequest'
       produces:
       - application/json
       responses:

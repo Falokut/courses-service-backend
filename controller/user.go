@@ -128,7 +128,7 @@ func (c User) DeleteUser(ctx context.Context, req domain.DeleteUserRequest) erro
 //	@Summary	Редактировать профиль пользователя
 //	@Produce	json
 //
-//	@Param		body	body		domain.RegisterRequest	true	"тело запроса"
+//	@Param		body	body		domain.EditUserRequest	true	"тело запроса"
 //
 //	@Success	200		{object}	any
 //	@Failure	400		{object}	apierrors.Error

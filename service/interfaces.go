@@ -38,4 +38,7 @@ type RoleRepo interface {
 type CourseRepo interface {
 	GetCoursesPreview(ctx context.Context, limit int32, offset int32) ([]entity.CoursePreview, error)
 	GetCourse(ctx context.Context, id int64) (entity.Course, error)
+	GetUserCourses(ctx context.Context, userId int64) ([]entity.CoursePreview, error)
+	Register(ctx context.Context, courseId int64, userId int64) error
+	IsRegistered(ctx context.Context, courseId int64, userId int64) (bool, error)
 }

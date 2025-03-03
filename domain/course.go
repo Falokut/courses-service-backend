@@ -27,3 +27,11 @@ type Lesson struct {
 	LessonContent string
 	VideoUrl      string
 }
+
+type CourseIdRequest struct {
+	CourseId int64 `validate:"required"`
+}
+
+type IsRegisteredResponse struct {
+	IsRegistered bool
+}

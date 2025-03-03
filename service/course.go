@@ -57,3 +57,37 @@ func (s Course) GetCourse(ctx context.Context, req domain.GetCourseRequest) (*do
 		Lessons:   courseLessons,
 	}, nil
 }
+
+func (s Course) GetUserCourses(ctx context.Context, userId int64) ([]domain.CoursePreview, error) {
+	courses, err := s.repo.GetUserCourses(ctx, userId)
+	if err != nil {
+		return nil, errors.WithMessage(err, "get user courses")
+	}
+
+	domainCourses := make([]domain.CoursePreview, 0, len(courses))
+	for _, course := range courses {
+		domainCourses = append(domainCourses, domain.CoursePreview{
+			Id:                course.Id,
+			AuthorFio:         course.AuthorFio,
+			Title:             course.Title,
+			PreviewPictureUrl: course.PreviewPictureUrl,
+		})
+	}
+	return domainCourses, nil
+}
+
+func (s Course) Register(ctx context.Context, courseId int64, userId int64) error {
+	err := s.repo.Register(ctx, courseId, userId)
+	if err != nil {
+		return errors.WithMessage(err, "get user courses")
+	}
+	return nil
+}
+
+func (s Course) IsRegistered(ctx context.Context, courseId int64, userId int64) (domain.IsRegisteredResponse, error) {
+	registered, err := s.repo.IsRegistered(ctx, courseId, userId)
+	if err != nil {
+		return domain.IsRegisteredResponse{}, errors.WithMessage(err, "is registered")
+	}
+	return domain.IsRegisteredResponse{IsRegistered: registered}, nil
+}
