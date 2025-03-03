@@ -39,22 +39,43 @@ func (r Course) GetCoursesPreview(ctx context.Context, limit int32, offset int32
 
 func (r Course) GetCourse(ctx context.Context, id int64) (entity.Course, error) {
 	const query = `
-	SELECT c.id, u.fio  AS author_fio, c.title,
-		json_agg(
-				json_build_object(
-					'lessonNumber', l.lesson_number,
-					'courseId', l.course_id,
-					'title', l.title,
-					'createdAt', l.created_at,
-					'lessonContent', l.lesson_content,
-					'videoUrl', l.video_url
+	SELECT c.id, u.fio AS author_fio, c.title, json_agg(
+			json_build_object(
+				'lessonNumber', l.lesson_number,
+				'courseId', l.course_id,
+				'title', l.title,
+				'createdAt', l.created_at, 
+				'lessonContent', l.lesson_content,
+				'videoUrl', l.video_url, 
+				'attachments', COALESCE(
+					(
+						SELECT json_agg(
+								json_build_object(
+									'id', la.id, 
+									'type', la.attachment_type,
+									'lessonId', la.lesson_id, 
+									'prettyName', la.pretty_name, 
+									'url', la.url
+								)
+							)
+						FROM lesson_attachments la
+						WHERE
+							la.lesson_id = l.id
+					), '[]'::json
 				)
-				) AS lessons
-	FROM courses c
-	JOIN users u ON c.author_id=u.id
-	JOIN course_lessons l ON l.course_id=c.id
-	WHERE c.id=$1
-	GROUP BY c.id, u.fio, c.title, c.preview_picture_url;`
+			)
+		) AS lessons
+	FROM
+		courses c
+		JOIN users u ON c.author_id = u.id
+		JOIN course_lessons l ON l.course_id = c.id
+	WHERE
+		c.id = $1
+	GROUP BY
+		c.id,
+		u.fio,
+		c.title,
+		c.preview_picture_url;`
 
 	var course entity.Course
 	err := r.db.SelectRow(ctx, &course, query, id)

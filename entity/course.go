@@ -28,6 +28,15 @@ type Lesson struct {
 	CreatedAt     time.Time
 	LessonContent string
 	VideoUrl      string
+	Attachments   []LessonAttachment
+}
+
+type LessonAttachment struct {
+	Id         int64
+	Type       string
+	LessonId   int64
+	PrettyName string
+	Url        string
 }
 
 type Lessons []Lesson

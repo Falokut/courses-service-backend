@@ -57,7 +57,7 @@ VALUES (0, 0, 0, 'DELETED');
 CREATE TABLE lesson_attachments (
     id SERIAL PRIMARY KEY,
     attachment_type TEXT NOT NULL,
-    lesson_number INT NOT NULL DEFAULT 0 REFERENCES course_lessons (id) ON UPDATE CASCADE ON DELETE SET DEFAULT,
+    lesson_id INT NOT NULL DEFAULT 0 REFERENCES course_lessons (id) ON UPDATE CASCADE ON DELETE SET DEFAULT,
     pretty_name TEXT,
     url TEXT NOT NULL
 );

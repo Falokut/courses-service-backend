@@ -26,6 +26,15 @@ type Lesson struct {
 	CreatedAt     time.Time
 	LessonContent string
 	VideoUrl      string
+	Attachments   []LessonAttachment
+}
+
+type LessonAttachment struct {
+	Id         int64
+	LessonId   int64
+	Type       string
+	PrettyName string
+	Url        string
 }
 
 type CourseIdRequest struct {

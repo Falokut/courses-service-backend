@@ -75,6 +75,10 @@ definitions:
     type: object
   domain.Lesson:
     properties:
+      attachments:
+        items:
+          $ref: '#/definitions/domain.LessonAttachment'
+        type: array
       createdAt:
         type: string
       lessonContent:
@@ -84,6 +88,19 @@ definitions:
       title:
         type: string
       videoUrl:
+        type: string
+    type: object
+  domain.LessonAttachment:
+    properties:
+      id:
+        type: integer
+      lessonId:
+        type: integer
+      prettyName:
+        type: string
+      type:
+        type: string
+      url:
         type: string
     type: object
   domain.LoginRequest:

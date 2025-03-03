@@ -43,11 +43,22 @@ func (s Course) GetCourse(ctx context.Context, req domain.GetCourseRequest) (*do
 
 	courseLessons := make([]domain.Lesson, 0, len(course.Lessons))
 	for _, lesson := range course.Lessons {
+		attachments := make([]domain.LessonAttachment, 0, len(lesson.Attachments))
+		for _, attachment := range lesson.Attachments {
+			attachments = append(attachments, domain.LessonAttachment{
+				Id:         attachment.Id,
+				LessonId:   attachment.LessonId,
+				Type:       attachment.Type,
+				PrettyName: attachment.PrettyName,
+				Url:        attachment.Url,
+			})
+		}
 		courseLessons = append(courseLessons, domain.Lesson{
 			LessonNumber:  lesson.LessonNumber,
 			Title:         lesson.Title,
 			CreatedAt:     lesson.CreatedAt,
 			LessonContent: lesson.LessonContent,
+			Attachments:   attachments,
 		})
 	}
 	return &domain.Course{
