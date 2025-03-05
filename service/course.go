@@ -1,9 +1,12 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"courses-service/domain"
 	"courses-service/entity"
+	"encoding/csv"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -18,6 +21,7 @@ type CourseRepo interface {
 	IsRegistered(ctx context.Context, courseId int64, userId int64) (bool, error)
 	CheckCourseOwnership(ctx context.Context, userId int64, courseId int64) (bool, error)
 	DeleteCourse(ctx context.Context, courseId int64) error
+	Stats(ctx context.Context) ([]entity.CourseStat, error)
 }
 
 type CourseTxRunner interface {
@@ -222,4 +226,36 @@ func (s Course) ReorderLessons(ctx context.Context, req domain.EditCourseLessons
 		return errors.WithMessage(err, "reorder lessons tx")
 	}
 	return nil
+}
+
+func (s Course) Stats(ctx context.Context) ([]byte, error) {
+	stats, err := s.courseRepo.Stats(ctx)
+	if err != nil {
+		return nil, errors.WithMessage(err, "stats")
+	}
+	toExport := [][]string{}
+	toExport = append(toExport, []string{
+		"\uFEFFидентификатор курса",
+		"название курса",
+		"ФИО автора курса",
+		"количество зарегистрированных студентов",
+	})
+
+	for _, stat := range stats {
+		toExport = append(toExport, []string{
+			fmt.Sprint(stat.Id),
+			stat.Title,
+			stat.AuthorFio,
+			fmt.Sprint(stat.Count),
+		})
+	}
+
+	var b bytes.Buffer
+	writer := csv.NewWriter(&b)
+	err = writer.WriteAll(toExport)
+	if err != nil {
+		return nil, errors.WithMessage(err, "write all")
+	}
+	writer.Flush()
+	return b.Bytes(), nil
 }

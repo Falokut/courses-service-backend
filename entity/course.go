@@ -63,3 +63,10 @@ func (o *Lessons) Scan(value any) error {
 	}
 	return json.Unmarshal(bytes, o) //nolint:wrapcheck
 }
+
+type CourseStat struct {
+	Id        int64
+	Title     string
+	AuthorFio string
+	Count     int64
+}

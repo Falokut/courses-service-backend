@@ -195,3 +195,17 @@ func (r Course) CheckCourseOwnership(ctx context.Context, userId int64, courseId
 	}
 	return isOwner, nil
 }
+
+func (r Course) Stats(ctx context.Context) ([]entity.CourseStat, error) {
+	const query = `SELECT c.id, u.fio AS author_fio, c.title, COUNT(cr.user_id)
+	FROM courses c
+	JOIN users u ON c.author_id=u.id
+	JOIN courses_registration cr ON c.id=cr.course_id
+	GROUP BY c.id, u.fio, c.title;`
+	stats := make([]entity.CourseStat, 0)
+	err := r.db.Select(ctx, &stats, query)
+	if err != nil {
+		return nil, errors.WithMessagef(err, "exec query: %s", query)
+	}
+	return stats, nil
+}

@@ -742,6 +742,24 @@ paths:
       summary: Изменить порядок уроков в курсе
       tags:
       - course
+  /courses/stats:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      summary: Получить статистику курсов в csv файле
+      tags:
+      - course
   /courses/user_courses:
     get:
       produces:

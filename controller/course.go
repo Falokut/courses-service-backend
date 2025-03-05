@@ -20,6 +20,7 @@ type CourseService interface {
 	AddCourse(ctx context.Context, req domain.AddCourseRequest) (*domain.AddCourseResponse, error)
 	EditCourse(ctx context.Context, req domain.EditCourseRequest) (*domain.EditCourseResponse, error)
 	ReorderLessons(ctx context.Context, req domain.EditCourseLessonsOrderingRequest) error
+	Stats(ctx context.Context) ([]byte, error)
 }
 
 type Course struct {
@@ -244,4 +245,26 @@ func (c Course) ReorderLessons(ctx context.Context, req domain.EditCourseLessons
 	default:
 		return err
 	}
+}
+
+// Stats
+//
+//	@Tags		course
+//	@Summary	Получить статистику курсов в csv файле
+//	@Accept		json
+//	@Produce	json
+//
+//	@Success	200	{object}	any
+//	@Failure	500	{object}	apierrors.Error
+//
+//	@Router		/courses/stats [GET]
+func (c Course) Stats(ctx context.Context, w http.ResponseWriter) error {
+	stats, err := c.service.Stats(ctx)
+	if err != nil {
+		return err
+	}
+
+	w.Header().Set("Content-Type", "text/csv")
+	_, err = w.Write(stats)
+	return err
 }

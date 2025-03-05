@@ -162,6 +162,10 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			Path:         "/courses/reorder_lessons",
 			Handler:      r.Course.ReorderLessons,
 			AllowedRoles: []string{domain.LectorType},
+		}, {
+			Method:  http.MethodGet,
+			Path:    "/courses/stats",
+			Handler: r.Course.Stats,
 		},
 
 		{
