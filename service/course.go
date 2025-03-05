@@ -16,6 +16,7 @@ type CourseRepo interface {
 	GetCoursesByAuthorId(ctx context.Context, userId int64) ([]entity.CoursePreview, error)
 	Register(ctx context.Context, courseId int64, userId int64) error
 	IsRegistered(ctx context.Context, courseId int64, userId int64) (bool, error)
+	CheckCourseOwnership(ctx context.Context, userId int64, courseId int64) (bool, error)
 	DeleteCourse(ctx context.Context, courseId int64) error
 }
 

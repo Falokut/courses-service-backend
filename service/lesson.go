@@ -6,11 +6,13 @@ import (
 	"courses-service/entity"
 	"time"
 
+	"github.com/Falokut/go-kit/http/apierrors"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
 
 type LessonRepo interface {
+	CheckLessonOwnership(ctx context.Context, userId int64, lessonId int64) (bool, error)
 	CreateLesson(ctx context.Context, lesson entity.CreateLessonRequest) error
 	EditTitle(ctx context.Context, id int64, newTitle string) error
 	EditContent(ctx context.Context, id int64, content string) error
@@ -37,24 +39,34 @@ type AddVideoTx interface {
 
 type Lesson struct {
 	lessonRepo LessonRepo
+	courseRepo CourseRepo
 	txRunner   LessonTxRunner
 	fileRepo   FileRepo
 }
 
 func NewLesson(
 	lessonRepo LessonRepo,
+	courseRepo CourseRepo,
 	txRunner LessonTxRunner,
 	fileRepo FileRepo,
 ) Lesson {
 	return Lesson{
 		lessonRepo: lessonRepo,
+		courseRepo: courseRepo,
 		txRunner:   txRunner,
 		fileRepo:   fileRepo,
 	}
 }
 
 func (s Lesson) CreateLesson(ctx context.Context, req domain.CreateLessonRequest) error {
-	err := s.lessonRepo.CreateLesson(ctx, entity.CreateLessonRequest{
+	isOwner, err := s.courseRepo.CheckCourseOwnership(ctx, domain.UserIdFromContext(ctx), req.CourseId)
+	if err != nil {
+		return errors.WithMessage(err, "check course ownership")
+	}
+	if !isOwner {
+		return apierrors.NewForbiddenError("Вы не автор курса")
+	}
+	err = s.lessonRepo.CreateLesson(ctx, entity.CreateLessonRequest{
 		CourseId:     req.CourseId,
 		LessonNumber: req.LessonNumber,
 		CreatedAt:    time.Now().UTC(),
@@ -67,14 +79,28 @@ func (s Lesson) CreateLesson(ctx context.Context, req domain.CreateLessonRequest
 }
 
 func (s Lesson) EditTitle(ctx context.Context, req domain.EditLessonTitleRequest) error {
-	err := s.lessonRepo.EditTitle(ctx, req.LessonId, req.NewTitle)
+	isOwner, err := s.lessonRepo.CheckLessonOwnership(ctx, domain.UserIdFromContext(ctx), req.LessonId)
+	if err != nil {
+		return errors.WithMessage(err, "check lesson ownership")
+	}
+	if !isOwner {
+		return apierrors.NewForbiddenError("Вы не автор курса")
+	}
+	err = s.lessonRepo.EditTitle(ctx, req.LessonId, req.NewTitle)
 	if err != nil {
 		return errors.WithMessage(err, "edit lesson title")
 	}
 	return nil
 }
 func (s Lesson) EditLessonContent(ctx context.Context, req domain.EditLessonContentRequest) error {
-	err := s.lessonRepo.EditContent(ctx, req.LessonId, req.NewContent)
+	isOwner, err := s.lessonRepo.CheckLessonOwnership(ctx, domain.UserIdFromContext(ctx), req.LessonId)
+	if err != nil {
+		return errors.WithMessage(err, "check lesson ownership")
+	}
+	if !isOwner {
+		return apierrors.NewForbiddenError("Вы не автор курса")
+	}
+	err = s.lessonRepo.EditContent(ctx, req.LessonId, req.NewContent)
 	if err != nil {
 		return errors.WithMessage(err, "edit lesson content")
 	}
@@ -82,8 +108,16 @@ func (s Lesson) EditLessonContent(ctx context.Context, req domain.EditLessonCont
 }
 
 func (s Lesson) AttachFileToLesson(ctx context.Context, req domain.AttachFileToLessonRequest) (string, error) {
+	isOwner, err := s.lessonRepo.CheckLessonOwnership(ctx, domain.UserIdFromContext(ctx), req.LessonId)
+	if err != nil {
+		return "", errors.WithMessage(err, "check lesson ownership")
+	}
+	if !isOwner {
+		return "", apierrors.NewForbiddenError("Вы не автор курса")
+	}
+
 	var url string
-	err := s.txRunner.AttachFileTransaction(ctx, func(ctx context.Context, tx AttachFileTx) error {
+	err = s.txRunner.AttachFileTransaction(ctx, func(ctx context.Context, tx AttachFileTx) error {
 		filename := uuid.NewString()
 		url = s.fileRepo.GetFileUrl(entity.CoursesCategory, filename)
 		err := tx.AttachFile(ctx, entity.LessonAttachment{
@@ -113,7 +147,14 @@ func (s Lesson) AttachFileToLesson(ctx context.Context, req domain.AttachFileToL
 }
 
 func (s Lesson) UnattachFileFromLesson(ctx context.Context, req domain.UnattachFileRequest) error {
-	err := s.lessonRepo.UnattachFile(ctx, req.AttachmentId)
+	isOwner, err := s.lessonRepo.CheckLessonOwnership(ctx, domain.UserIdFromContext(ctx), req.LessonId)
+	if err != nil {
+		return errors.WithMessage(err, "check lesson ownership")
+	}
+	if !isOwner {
+		return apierrors.NewForbiddenError("Вы не автор курса")
+	}
+	err = s.lessonRepo.UnattachFile(ctx, req.AttachmentId)
 	if err != nil {
 		return errors.WithMessage(err, "unattach file from lesson")
 	}
@@ -121,8 +162,15 @@ func (s Lesson) UnattachFileFromLesson(ctx context.Context, req domain.UnattachF
 }
 
 func (s Lesson) AddLessonVideo(ctx context.Context, req domain.AddLessonVideoRequest) (string, error) {
+	isOwner, err := s.lessonRepo.CheckLessonOwnership(ctx, domain.UserIdFromContext(ctx), req.LessonId)
+	if err != nil {
+		return "", errors.WithMessage(err, "check lesson ownership")
+	}
+	if !isOwner {
+		return "", apierrors.NewForbiddenError("Вы не автор курса")
+	}
 	var url string
-	err := s.txRunner.AddVideoTransaction(ctx, func(ctx context.Context, tx AddVideoTx) error {
+	err = s.txRunner.AddVideoTransaction(ctx, func(ctx context.Context, tx AddVideoTx) error {
 		filename := uuid.NewString()
 		url = s.fileRepo.GetFileUrl(entity.CoursesCategory, filename)
 		err := tx.AddVideo(ctx, req.LessonId, url)
@@ -147,7 +195,14 @@ func (s Lesson) AddLessonVideo(ctx context.Context, req domain.AddLessonVideoReq
 }
 
 func (s Lesson) DeleteLessonVideo(ctx context.Context, id int64) error {
-	err := s.txRunner.DeleteVideoTransaction(ctx, func(ctx context.Context, tx DeleteVideoTx) error {
+	isOwner, err := s.lessonRepo.CheckLessonOwnership(ctx, domain.UserIdFromContext(ctx), id)
+	if err != nil {
+		return errors.WithMessage(err, "check lesson ownership")
+	}
+	if !isOwner {
+		return apierrors.NewForbiddenError("Вы не автор курса")
+	}
+	err = s.txRunner.DeleteVideoTransaction(ctx, func(ctx context.Context, tx DeleteVideoTx) error {
 		url, err := tx.DeleteVideo(ctx, id)
 		if err != nil {
 			return errors.WithMessage(err, "delete video")

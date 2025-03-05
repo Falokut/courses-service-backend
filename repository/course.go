@@ -127,6 +127,7 @@ func (r Course) GetUserCourses(ctx context.Context, userId int64) ([]entity.Cour
 	}
 	return coursePreview, nil
 }
+
 func (r Course) GetCoursesByAuthorId(ctx context.Context, authorId int64) ([]entity.CoursePreview, error) {
 	const query = `
 	SELECT c.id, u.fio AS author_fio, c.title, c.author_id, c.preview_picture_url
@@ -183,4 +184,14 @@ func (r Course) GetCoursePreviewPicture(ctx context.Context, courseId int64) (st
 	default:
 		return previewPicture, nil
 	}
+}
+
+func (r Course) CheckCourseOwnership(ctx context.Context, userId int64, courseId int64) (bool, error) {
+	const query = "SELECT EXISTS (SELECT 1 FROM courses WHERE author_id=$1 AND id=$2);"
+	isOwner := false
+	err := r.db.SelectRow(ctx, &isOwner, query, userId, courseId)
+	if err != nil {
+		return false, errors.WithMessagef(err, "exec query: %s", query)
+	}
+	return isOwner, nil
 }

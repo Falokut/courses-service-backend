@@ -61,7 +61,7 @@ func Locator(
 	course := controller.NewCourse(courseService)
 
 	lessonRepo := repository.NewLesson(dbCli)
-	lessonService := service.NewLesson(lessonRepo, txRunner, filesRepo)
+	lessonService := service.NewLesson(lessonRepo, courseRepo, txRunner, filesRepo)
 	lesson := controller.NewLesson(lessonService)
 	router := routes.Router{
 		Auth:   auth,

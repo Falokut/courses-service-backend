@@ -96,3 +96,17 @@ func (r Lesson) UpdateLessonNumber(ctx context.Context, lessonId int64, number i
 	}
 	return nil
 }
+func (r Lesson) CheckLessonOwnership(ctx context.Context, userId int64, lessonId int64) (bool, error) {
+	const query = `SELECT EXISTS (
+		SELECT 1 
+		FROM courses c 
+		JOIN course_lessons cl ON c.id=cl.course_id 
+		WHERE author_id=$1 AND cl.id=$2
+		);`
+	isOwner := false
+	err := r.db.SelectRow(ctx, &isOwner, query, userId, lessonId)
+	if err != nil {
+		return false, errors.WithMessagef(err, "exec query: %s", query)
+	}
+	return isOwner, nil
+}
