@@ -68,31 +68,7 @@ CREATE TABLE courses_registration (
     PRIMARY KEY (course_id, user_id)
 );
 
-CREATE TABLE assignments (
-    id SERIAL PRIMARY KEY,
-    course_id INT NOT NULL REFERENCES courses (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    lector_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    assignment_text TEXT,
-    created_at DATE
-);
-
-CREATE TABLE submitted_assignments (
-    student_id INT NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    assignment_id INT NOT NULL REFERENCES assignments (id) ON UPDATE CASCADE ON DELETE CASCADE,
-    grade INT NOT NULL CHECK (
-        grade > 0
-        AND grade < 6
-    ),
-    submitted_at DATE,
-    attachments_info JSON DEFAULT '{}',
-    PRIMARY KEY (student_id, assignment_id)
-);
-
 -- +goose Down
-DROP TABLE submitted_assignments;
-
-DROP TABLE assignments;
-
 DROP TABLE lesson_attachments;
 
 DROP TABLE course_lessons;
