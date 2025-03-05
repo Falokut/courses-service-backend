@@ -30,6 +30,21 @@ definitions:
       previewPictureUrl:
         type: string
     type: object
+  domain.AttachFileToLessonRequest:
+    properties:
+      attachmentContent:
+        items:
+          type: integer
+        type: array
+      lessonId:
+        type: integer
+      prettyName:
+        maxLength: 30
+        type: string
+    required:
+    - attachmentContent
+    - lessonId
+    type: object
   domain.Course:
     properties:
       authorFio:
@@ -41,6 +56,8 @@ definitions:
           $ref: '#/definitions/domain.Lesson'
         type: array
       title:
+        type: string
+      videoUrl:
         type: string
     type: object
   domain.CourseIdRequest:
@@ -62,6 +79,31 @@ definitions:
         type: string
       title:
         type: string
+    type: object
+  domain.CreateLessonRequest:
+    properties:
+      courseId:
+        type: integer
+      lessonNumber:
+        type: integer
+      title:
+        type: string
+    required:
+    - courseId
+    - lessonNumber
+    - title
+    type: object
+  domain.EditCourseLessonsOrderingRequest:
+    properties:
+      courseId:
+        type: integer
+      orderedLessonsIds:
+        items:
+          type: integer
+        type: array
+    required:
+    - courseId
+    - orderedLessonsIds
     type: object
   domain.EditCourseRequest:
     properties:
@@ -85,6 +127,18 @@ definitions:
     properties:
       newPreviewPictureUrl:
         type: string
+    type: object
+  domain.EditLessonTitleRequest:
+    properties:
+      lessonId:
+        type: integer
+      newTitle:
+        maxLength: 100
+        minLength: 5
+        type: string
+    required:
+    - lessonId
+    - newTitle
     type: object
   domain.EditUserRequest:
     properties:
@@ -126,6 +180,8 @@ definitions:
         type: array
       createdAt:
         type: string
+      id:
+        type: integer
       lessonContent:
         type: string
       lessonNumber:
@@ -196,6 +252,16 @@ definitions:
         type: string
       id:
         type: string
+    type: object
+  domain.UnattachFileRequest:
+    properties:
+      attachmentId:
+        type: integer
+      lessonId:
+        type: integer
+    required:
+    - attachmentId
+    - lessonId
     type: object
   domain.User:
     properties:
@@ -563,6 +629,39 @@ paths:
       summary: Проверить зарегистрирован пользователь на курс
       tags:
       - course
+  /courses/lector_courses:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.CoursePreview'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      security:
+      - Bearer: []
+      summary: Получить курсы лектора (получение курсов, автором которых является
+        пользователь)
+      tags:
+      - course
   /courses/register:
     post:
       parameters:
@@ -600,6 +699,49 @@ paths:
       summary: Зарегистрироваться на курс
       tags:
       - course
+  /courses/reorder_lessons:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: тело запроса
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EditCourseLessonsOrderingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      security:
+      - Bearer: []
+      summary: Изменить порядок уроков в курсе
+      tags:
+      - course
   /courses/user_courses:
     get:
       produces:
@@ -632,6 +774,298 @@ paths:
       summary: Получить курсы пользователя
       tags:
       - course
+  /lessons:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: тело запроса
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateLessonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.EditCourseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      security:
+      - Bearer: []
+      summary: Создать урок
+      tags:
+      - lesson
+  /lessons/add_video:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: тело запроса
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UnattachFileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      summary: Удалить видео из урока
+      tags:
+      - lesson
+  /lessons/attach_file:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: тело запроса
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.AttachFileToLessonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      summary: Прикрепить файл к уроку
+      tags:
+      - lesson
+  /lessons/delete_video:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: идентификатор
+        in: query
+        name: lessonId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      summary: Удалить видео из урока
+      tags:
+      - lesson
+  /lessons/edit_content:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: тело запроса
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EditLessonTitleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      summary: Редактировать содержание урока
+      tags:
+      - lesson
+  /lessons/edit_title:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: тело запроса
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.EditLessonTitleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      summary: Редактировать заголовок урока
+      tags:
+      - lesson
+  /lessons/unattach_file:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: идентификатор
+        in: query
+        name: lessonId
+        required: true
+        type: integer
+      - description: идентификатор
+        in: query
+        name: attachmentId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apierrors.Error'
+      summary: Открепить файл от урока
+      tags:
+      - lesson
   /roles:
     get:
       consumes:

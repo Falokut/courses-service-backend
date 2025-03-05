@@ -15,6 +15,7 @@ type Router struct {
 	User   controller.User
 	Role   controller.Role
 	Course controller.Course
+	Lesson controller.Lesson
 }
 
 func (r Router) InitRoutes(
@@ -75,7 +76,9 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			Path:         "/auth/register",
 			Handler:      r.Auth.Register,
 			AllowedRoles: []string{domain.AdminType},
-		}, {
+		},
+
+		{
 			Method:  http.MethodGet,
 			Path:    "/users/get_role",
 			Handler: r.User.GetRole,
@@ -107,7 +110,9 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			Method:  http.MethodGet,
 			Path:    "/roles",
 			Handler: r.Role.GetRoles,
-		}, {
+		},
+
+		{
 			Method:  http.MethodGet,
 			Path:    "/courses",
 			Handler: r.Course.GetCoursesPreview,
@@ -151,6 +156,50 @@ func endpointDescriptors(r Router) []EndpointDescriptor {
 			Method:       http.MethodGet,
 			Path:         "/courses/lector_courses",
 			Handler:      r.Course.GetLectorCourses,
+			AllowedRoles: []string{domain.LectorType},
+		}, {
+			Method:       http.MethodGet,
+			Path:         "/courses/reorder_lessons",
+			Handler:      r.Course.ReorderLessons,
+			AllowedRoles: []string{domain.LectorType},
+		},
+
+		{
+			Method:       http.MethodPost,
+			Path:         "/lessons",
+			Handler:      r.Lesson.CreateLesson,
+			AllowedRoles: []string{domain.LectorType},
+		}, {
+			Method:       http.MethodPost,
+			Path:         "/lessons/edit_title",
+			Handler:      r.Lesson.EditTitle,
+			AllowedRoles: []string{domain.LectorType},
+		}, {
+			Method:       http.MethodPost,
+			Path:         "/lessons/edit_content",
+			Handler:      r.Lesson.EditLessonContent,
+			AllowedRoles: []string{domain.LectorType},
+		}, {
+			Method:             http.MethodPost,
+			Path:               "/lessons/add_video",
+			Handler:            r.Lesson.AddLessonVideo,
+			AllowedRoles:       []string{domain.LectorType},
+			DisableMaxBodySize: true,
+		}, {
+			Method:             http.MethodPost,
+			Path:               "/lessons/attach_file",
+			Handler:            r.Lesson.AttachFileToLesson,
+			AllowedRoles:       []string{domain.LectorType},
+			DisableMaxBodySize: true,
+		}, {
+			Method:       http.MethodDelete,
+			Path:         "/lessons/delete_video",
+			Handler:      r.Lesson.DeleteLessonVideo,
+			AllowedRoles: []string{domain.LectorType},
+		}, {
+			Method:       http.MethodDelete,
+			Path:         "/lessons/unattach_file",
+			Handler:      r.Lesson.UnattachFileFromLesson,
 			AllowedRoles: []string{domain.LectorType},
 		},
 	}

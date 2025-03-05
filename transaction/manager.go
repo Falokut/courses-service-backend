@@ -68,3 +68,42 @@ func (m Manager) CleanAttachmentsTransaction(ctx context.Context, txFunc func(ct
 		})
 	})
 }
+
+type lessonTransaction struct {
+	repository.Lesson
+}
+
+func (m Manager) AttachFileTransaction(ctx context.Context, txFunc func(ctx context.Context, tx service.AttachFileTx) error) error {
+	return m.db.RunInTransaction(ctx, func(ctx context.Context, tx *db.Tx) error {
+		lessonRepo := repository.NewLesson(tx)
+		return txFunc(ctx, lessonTransaction{
+			lessonRepo,
+		})
+	})
+}
+func (m Manager) DeleteVideoTransaction(ctx context.Context, txFunc func(ctx context.Context, tx service.DeleteVideoTx) error) error {
+	return m.db.RunInTransaction(ctx, func(ctx context.Context, tx *db.Tx) error {
+		lessonRepo := repository.NewLesson(tx)
+		return txFunc(ctx, lessonTransaction{
+			lessonRepo,
+		})
+	})
+}
+
+func (m Manager) AddVideoTransaction(ctx context.Context, txFunc func(ctx context.Context, tx service.AddVideoTx) error) error {
+	return m.db.RunInTransaction(ctx, func(ctx context.Context, tx *db.Tx) error {
+		lessonRepo := repository.NewLesson(tx)
+		return txFunc(ctx, lessonTransaction{
+			lessonRepo,
+		})
+	})
+}
+
+func (m Manager) ReorderLessonsTransaction(ctx context.Context, txFunc func(ctx context.Context, tx service.ReorderLessonsTx) error) error {
+	return m.db.RunInTransaction(ctx, func(ctx context.Context, tx *db.Tx) error {
+		lessonRepo := repository.NewLesson(tx)
+		return txFunc(ctx, lessonTransaction{
+			lessonRepo,
+		})
+	})
+}

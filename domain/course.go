@@ -1,7 +1,5 @@
 package domain
 
-import "time"
-
 type GetCourseRequest struct {
 	CourseId int64 `validate:"required"`
 }
@@ -20,24 +18,6 @@ type Course struct {
 	Title     string
 	Lessons   []Lesson
 	VideoUrl  string
-}
-
-type Lesson struct {
-	Id            int64
-	LessonNumber  int64
-	Title         string
-	CreatedAt     time.Time
-	LessonContent string
-	VideoUrl      string
-	Attachments   []LessonAttachment
-}
-
-type LessonAttachment struct {
-	Id         int64
-	LessonId   int64
-	Type       string
-	PrettyName string
-	Url        string
 }
 
 type CourseIdRequest struct {
@@ -63,6 +43,11 @@ type EditCourseRequest struct {
 	AuthorId       int64  `validate:"required"`
 	Title          string `validate:"required"`
 	PreviewPicture []byte `validate:"required"`
+}
+
+type EditCourseLessonsOrderingRequest struct {
+	CourseId          int64   `validate:"required"`
+	OrderedLessonsIds []int64 `validate:"required"`
 }
 
 type EditCourseResponse struct {

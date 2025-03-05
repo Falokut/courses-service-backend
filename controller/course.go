@@ -19,6 +19,7 @@ type CourseService interface {
 	DeleteCourse(ctx context.Context, courseId int64) error
 	AddCourse(ctx context.Context, req domain.AddCourseRequest) (*domain.AddCourseResponse, error)
 	EditCourse(ctx context.Context, req domain.EditCourseRequest) (*domain.EditCourseResponse, error)
+	ReorderLessons(ctx context.Context, req domain.EditCourseLessonsOrderingRequest) error
 }
 
 type Course struct {
@@ -213,5 +214,34 @@ func (c Course) EditCourse(ctx context.Context, req domain.EditCourseRequest) (*
 		return nil, apierrors.New(http.StatusNotFound, domain.ErrCodeCourseNotFound, domain.ErrCourseNotFound.Error(), err)
 	default:
 		return resp, err
+	}
+}
+
+// ReorderLessons
+//
+//	@Tags		course
+//	@Summary	Изменить порядок уроков в курсе
+//	@Accept		json
+//	@Produce	json
+//
+//	@Param		body	body		domain.EditCourseLessonsOrderingRequest	true	"тело запроса"
+//
+//	@Success	200		{object}	any
+//	@Failure	400		{object}	apierrors.Error
+//	@Failure	401		{object}	apierrors.Error
+//	@Failure	403		{object}	apierrors.Error
+//	@Failure	404		{object}	apierrors.Error
+//	@Failure	500		{object}	apierrors.Error
+//
+//	@Security	Bearer
+//
+//	@Router		/courses/reorder_lessons [POST]
+func (c Course) ReorderLessons(ctx context.Context, req domain.EditCourseLessonsOrderingRequest) error {
+	err := c.service.ReorderLessons(ctx, req)
+	switch {
+	case errors.Is(err, domain.ErrCourseNotFound):
+		return apierrors.New(http.StatusNotFound, domain.ErrCodeCourseNotFound, domain.ErrCourseNotFound.Error(), err)
+	default:
+		return err
 	}
 }

@@ -60,11 +60,15 @@ func Locator(
 	courseService := service.NewCourse(courseRepo, txRunner, filesRepo)
 	course := controller.NewCourse(courseService)
 
+	lessonRepo := repository.NewLesson(dbCli)
+	lessonService := service.NewLesson(lessonRepo, txRunner, filesRepo)
+	lesson := controller.NewLesson(lessonService)
 	router := routes.Router{
 		Auth:   auth,
 		User:   user,
 		Role:   role,
 		Course: course,
+		Lesson: lesson,
 	}
 
 	authMiddleware := routes.NewAuthMiddleware(authRepo)

@@ -9,6 +9,35 @@ import (
 	"github.com/pkg/errors"
 )
 
+type CourseRepo interface {
+	GetCoursesPreview(ctx context.Context, limit int32, offset int32) ([]entity.CoursePreview, error)
+	GetCourse(ctx context.Context, id int64) (entity.Course, error)
+	GetUserCourses(ctx context.Context, userId int64) ([]entity.CoursePreview, error)
+	GetCoursesByAuthorId(ctx context.Context, userId int64) ([]entity.CoursePreview, error)
+	Register(ctx context.Context, courseId int64, userId int64) error
+	IsRegistered(ctx context.Context, courseId int64, userId int64) (bool, error)
+	DeleteCourse(ctx context.Context, courseId int64) error
+}
+
+type CourseTxRunner interface {
+	AddCourseTransaction(ctx context.Context, txFunc func(ctx context.Context, tx AddCourseTx) error) error
+	EditCourseTransaction(ctx context.Context, txFunc func(ctx context.Context, tx EditCourseTx) error) error
+	ReorderLessonsTransaction(ctx context.Context, txFunc func(ctx context.Context, tx ReorderLessonsTx) error) error
+}
+
+type AddCourseTx interface {
+	AddCourse(ctx context.Context, req entity.AddCourseRequest) error
+}
+
+type EditCourseTx interface {
+	GetCoursePreviewPicture(ctx context.Context, id int64) (string, error)
+	EditCourse(ctx context.Context, req entity.EditCourseRequest) error
+}
+
+type ReorderLessonsTx interface {
+	UpdateLessonNumber(ctx context.Context, lessonId int64, number int64) error
+}
+
 type Course struct {
 	courseRepo CourseRepo
 	fileRepo   FileRepo
@@ -178,46 +207,18 @@ func (s Course) editCourse(ctx context.Context, req domain.EditCourseRequest, tx
 	return previewPictureUrl, nil
 }
 
-func entityCoursesPreviewToDomain(courses []entity.CoursePreview) []domain.CoursePreview {
-	domainCourses := make([]domain.CoursePreview, 0, len(courses))
-	for _, course := range courses {
-		domainCourses = append(domainCourses, domain.CoursePreview{
-			Id:                course.Id,
-			AuthorId:          course.AuthorId,
-			AuthorFio:         course.AuthorFio,
-			Title:             course.Title,
-			PreviewPictureUrl: course.PreviewPictureUrl,
-		})
+func (s Course) ReorderLessons(ctx context.Context, req domain.EditCourseLessonsOrderingRequest) error {
+	err := s.txRunner.ReorderLessonsTransaction(ctx, func(ctx context.Context, tx ReorderLessonsTx) error {
+		for i, lessonId := range req.OrderedLessonsIds {
+			err := tx.UpdateLessonNumber(ctx, lessonId, int64(i+1))
+			if err != nil {
+				return errors.WithMessagef(err, "update lesson number on %d lesson", lessonId)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return errors.WithMessage(err, "reorder lessons tx")
 	}
-	return domainCourses
-}
-
-func entityLessonsToDomain(lessons []entity.Lesson) []domain.Lesson {
-	domainLessons := make([]domain.Lesson, 0, len(lessons))
-	for _, lesson := range lessons {
-		attachments := entityLessonAttachmentsToDomain(lesson.Attachments)
-		domainLessons = append(domainLessons, domain.Lesson{
-			LessonNumber:  lesson.LessonNumber,
-			Title:         lesson.Title,
-			CreatedAt:     lesson.CreatedAt,
-			LessonContent: lesson.LessonContent,
-			Attachments:   attachments,
-			VideoUrl:      lesson.VideoUrl,
-		})
-	}
-	return domainLessons
-}
-
-func entityLessonAttachmentsToDomain(attachments []entity.LessonAttachment) []domain.LessonAttachment {
-	domainAttachments := make([]domain.LessonAttachment, 0, len(attachments))
-	for _, attachment := range attachments {
-		domainAttachments = append(domainAttachments, domain.LessonAttachment{
-			Id:         attachment.Id,
-			LessonId:   attachment.LessonId,
-			Type:       attachment.Type,
-			PrettyName: attachment.PrettyName,
-			Url:        attachment.Url,
-		})
-	}
-	return domainAttachments
+	return nil
 }
