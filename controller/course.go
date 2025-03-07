@@ -9,6 +9,7 @@ import (
 	"github.com/Falokut/go-kit/http/apierrors"
 )
 
+// nolint:interfacebloat
 type CourseService interface {
 	GetCoursesPreview(ctx context.Context, req domain.LimitOffsetRequest) ([]domain.CoursePreview, error)
 	GetCourse(ctx context.Context, req domain.GetCourseRequest) (*domain.Course, error)
