@@ -1,8 +1,10 @@
 package service
 
 import (
+	"cmp"
 	"courses-service/domain"
 	"courses-service/entity"
+	"slices"
 )
 
 func entityCoursesPreviewToDomain(courses []entity.CoursePreview) []domain.CoursePreview {
@@ -24,6 +26,10 @@ func entityLessonsToDomain(lessons []entity.Lesson) []domain.Lesson {
 	for _, lesson := range lessons {
 		domainLessons = append(domainLessons, entityLessonToDomain(lesson))
 	}
+	slices.SortStableFunc(domainLessons, func(a, b domain.Lesson) int {
+		return cmp.Compare(a.LessonNumber, b.LessonNumber) // sort asc
+	})
+
 	return domainLessons
 }
 
