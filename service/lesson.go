@@ -19,6 +19,10 @@ type LessonRepo interface {
 	UnattachFile(ctx context.Context, attachmentId int64) error
 }
 
+type CourseOwnershipChecker interface {
+	CheckCourseOwnership(ctx context.Context, userId int64, courseId int64) (bool, error)
+}
+
 type LessonTxRunner interface {
 	AttachFileTransaction(ctx context.Context, txFunc func(ctx context.Context, tx AttachFileTx) error) error
 	DeleteVideoTransaction(ctx context.Context, txFunc func(ctx context.Context, tx DeleteVideoTx) error) error
@@ -38,28 +42,28 @@ type AddVideoTx interface {
 }
 
 type Lesson struct {
-	lessonRepo LessonRepo
-	courseRepo CourseRepo
-	txRunner   LessonTxRunner
-	fileRepo   FileRepo
+	lessonRepo             LessonRepo
+	courseOwnershipChecker CourseOwnershipChecker
+	txRunner               LessonTxRunner
+	fileRepo               FileRepo
 }
 
 func NewLesson(
 	lessonRepo LessonRepo,
-	courseRepo CourseRepo,
+	courseOwnershipChecker CourseOwnershipChecker,
 	txRunner LessonTxRunner,
 	fileRepo FileRepo,
 ) Lesson {
 	return Lesson{
-		lessonRepo: lessonRepo,
-		courseRepo: courseRepo,
-		txRunner:   txRunner,
-		fileRepo:   fileRepo,
+		lessonRepo:             lessonRepo,
+		courseOwnershipChecker: courseOwnershipChecker,
+		txRunner:               txRunner,
+		fileRepo:               fileRepo,
 	}
 }
 
 func (s Lesson) CreateLesson(ctx context.Context, req domain.CreateLessonRequest) error {
-	isOwner, err := s.courseRepo.CheckCourseOwnership(ctx, domain.UserIdFromContext(ctx), req.CourseId)
+	isOwner, err := s.courseOwnershipChecker.CheckCourseOwnership(ctx, domain.UserIdFromContext(ctx), req.CourseId)
 	if err != nil {
 		return errors.WithMessage(err, "check course ownership")
 	}
@@ -92,6 +96,7 @@ func (s Lesson) EditTitle(ctx context.Context, req domain.EditLessonTitleRequest
 	}
 	return nil
 }
+
 func (s Lesson) EditLessonContent(ctx context.Context, req domain.EditLessonContentRequest) error {
 	isOwner, err := s.lessonRepo.CheckLessonOwnership(ctx, domain.UserIdFromContext(ctx), req.LessonId)
 	if err != nil {
