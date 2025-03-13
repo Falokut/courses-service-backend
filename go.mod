@@ -1,7 +1,6 @@
 module courses-service
 
 go 1.23
-
 require (
 	github.com/Falokut/go-kit v1.3.1
 	github.com/pkg/errors v0.9.1
@@ -41,8 +40,8 @@ require (
 	github.com/pressly/goose/v3 v3.24.1 // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.33.0
-	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/crypto v0.35.0
+	golang.org/x/net v0.36.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
